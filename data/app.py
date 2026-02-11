@@ -17,21 +17,17 @@ try:
 except ImportError as e:
     st.error(f"Module import failed. Error: {e}")
 
-# --- 3. DATA VALIDATION ENGINE ---
+# --- 3. DATA VALIDATION LOGIC ---
 def validate_inputs(req_text, sprint_df):
     """Checks if the data is healthy for the AI to process."""
     errors = []
-    
-    # Check Requirements Length
     if len(req_text.strip()) < 10:
-        errors.append("Requirement text is too short. Please provide more detail for NLP analysis.")
+        errors.append("Requirement text is too short for linguistic analysis.")
     
-    # Check Sprint CSV Columns
     required_columns = ['sprint', 'hours_assigned', 'developer_capacity']
     for col in required_columns:
         if col not in sprint_df.columns:
-            errors.append(f"Missing required column: '{col}' in Resource Data.")
-            
+            errors.append(f"Missing required column: '{col}'")
     return errors
 
 # --- 4. PAGE CONFIGURATION ---
@@ -41,16 +37,15 @@ st.set_page_config(page_title="SentianRisk AI", layout="wide")
 st.markdown("""
     <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;700;800&display=swap');
-    
     html, body, [class*="css"] { font-family: 'Inter', sans-serif; }
     .stApp { background-color: #0E1117; }
 
-    /* Custom Cards */
+    /* Premium Metric Cards */
     .metric-card {
         background: linear-gradient(145deg, #16181d, #1a1c23);
         border: 1px solid rgba(255, 255, 255, 0.05);
         border-radius: 20px;
-        padding: 35px;
+        padding: 30px;
         text-align: center;
         box-shadow: 8px 8px 16px #080a0d, -4px -4px 12px #14171d;
         transition: all 0.4s ease;
@@ -61,10 +56,15 @@ st.markdown("""
     }
     .card-label {
         color: #6c757d;
-        font-size: 0.8rem;
+        font-size: 0.75rem;
         letter-spacing: 1.5px;
         text-transform: uppercase;
-        margin-bottom: 10px;
+        margin-bottom: 8px;
+    }
+    /* Sidebar styling */
+    [data-testid="stSidebar"] {
+        background-color: #0B0D11 !important;
+        border-right: 1px solid rgba(255, 255, 255, 0.05);
     }
     </style>
     """, unsafe_allow_html=True)
@@ -78,7 +78,7 @@ with col_t1:
         <h1 style='letter-spacing: 3px; font-weight: 300; margin-bottom: 0px; color: white;'>
             SENTIAN<span style='font-weight: 800; color: #4facfe;'>RISK</span> AI
         </h1>
-        <p style='color: #6c757d; font-size: 1rem; margin-top: 0px; font-weight: 400;'>
+        <p style='color: #6c757d; font-size: 0.9rem; margin-top: 0px; font-weight: 400;'>
             HYBRID PREDICTIVE INTELLIGENCE FOR PROJECT GOVERNANCE
         </p>
     """, unsafe_allow_html=True)
@@ -87,62 +87,82 @@ with col_t2:
     st.markdown("<br>", unsafe_allow_html=True)
     st.markdown(f"""
         <div style='text-align: right; border-left: 2px solid #4facfe; padding-left: 15px;'>
-            <span style='color: #4facfe; font-size: 0.8rem; font-weight: 700;'>RESEARCHER</span><br>
-            <span style='color: white; font-size: 1rem; font-weight: 300;'>SHAMA SALEEM</span>
+            <span style='color: #4facfe; font-size: 0.7rem; font-weight: 700;'>RESEARCHER</span><br>
+            <span style='color: white; font-size: 0.9rem; font-weight: 300;'>SHAMA SALEEM</span>
         </div>
     """, unsafe_allow_html=True)
 
-st.markdown("<hr style='border-top: 1px solid rgba(255,255,255,0.05); margin-bottom: 40px;'>", unsafe_allow_html=True)
+st.markdown("<hr style='border-top: 1px solid rgba(255,255,255,0.05); margin-bottom: 30px;'>", unsafe_allow_html=True)
 
-# --- 7. SIDEBAR ---
+# --- 7. SIDEBAR CONTROL PANEL ---
 with st.sidebar:
-    st.markdown("<h2 style='font-weight: 800; font-size: 1.2rem;'>CONTROL PANEL</h2>", unsafe_allow_html=True)
+    st.markdown("<h2 style='font-weight: 800; font-size: 1.1rem;'>CONTROL PANEL</h2>", unsafe_allow_html=True)
     req_file = st.file_uploader("Upload Requirements (.txt)", type=["txt"])
     spr_file = st.file_uploader("Upload Resource CSV (.csv)", type=["csv"])
     
     st.markdown("---")
-    if st.button("RUN ENGINE", use_container_width=True):
-        if req_file and spr_file:
-            st.session_state['run'] = True
-        else:
-            st.error("Input data missing.")
+    st.markdown("<p style='font-size: 0.75rem; color: #6c757d; font-weight: 700;'>DEMO TEMPLATES</p>", unsafe_allow_html=True)
+    
+    # Template: Requirements
+    sample_txt = "The system must allow secure user login. Interface should be responsive and robust. Resource usage needs optimization."
+    st.download_button("📥 Req Template", sample_txt, "requirements_template.txt", "text/plain", use_container_width=True)
 
-# --- 8. DASHBOARD LOGIC ---
-if st.session_state.get('run'):
+    # Template: CSV
+    sample_df = pd.DataFrame({
+        'sprint': [1, 2, 3],
+        'task_name': ['Auth Module', 'Data Schema', 'API Cloud'],
+        'hours_assigned': [38, 45, 52],
+        'developer_capacity': [40, 40, 40]
+    })
+    st.download_button("📥 CSV Template", sample_df.to_csv(index=False), "resource_template.csv", "text/csv", use_container_width=True)
+    
+    st.markdown("---")
+    if st.button("RUN AI ENGINE", use_container_width=True):
+        if req_file and spr_file:
+            st.session_state['run_ai'] = True
+        else:
+            st.error("Upload both files to start.")
+
+# --- 8. DASHBOARD MAIN VIEW ---
+if st.session_state.get('run_ai'):
     try:
-        # Load raw data for validation
+        # Load and Decode
         raw_text = req_file.getvalue().decode("utf-8")
         raw_df = pd.read_csv(spr_file)
         
-        # PERFORM VALIDATION
-        validation_errors = validate_inputs(raw_text, raw_df)
-        
-        if validation_errors:
-            for error in validation_errors:
-                st.error(f"🚨 {error}")
+        # VALIDATION
+        v_errors = validate_inputs(raw_text, raw_df)
+        if v_errors:
+            for err in v_errors: st.error(f"🚨 {err}")
         else:
-            # Save files to project directory
+            # Data Preview Section
+            with st.expander("🔍 Input Data Preview"):
+                p1, p2 = st.columns(2)
+                p1.text_area("Requirements Text", raw_text[:200] + "...", height=150)
+                p2.dataframe(raw_df.head(), use_container_width=True)
+
+            # Execution
             os.makedirs(os.path.join(root_path, "data"), exist_ok=True)
             with open(os.path.join(root_path, "data", "requirements.txt"), "w") as f:
                 f.write(raw_text)
             raw_df.to_csv(os.path.join(root_path, "data", "sprint_tasks.csv"), index=False)
 
-            with st.spinner("Analyzing Linguistic & Structural Risks..."):
+            with st.spinner("Processing NLP & Heuristic Metrics..."):
                 create_combined_dataset()
                 train_hybrid_model()
 
+            # Results Display
             res_path = os.path.join(root_path, "results", "combined_risk_data.csv")
             if os.path.exists(res_path):
                 df = pd.read_csv(res_path)
                 
-                st.markdown("<h3 style='font-weight: 400; color: #6c757d; letter-spacing: 1px;'>EXECUTIVE RISK SUMMARY</h3>", unsafe_allow_html=True)
+                st.markdown("<h3 style='font-weight: 400; color: #6c757d;'>EXECUTIVE SUMMARY</h3>", unsafe_allow_html=True)
                 cols = st.columns(len(df))
                 
                 for i, (_, row) in enumerate(df.iterrows()):
                     with cols[i]:
                         risk = str(row['risk_level']).strip().upper()
                         color = "#FF4B4B" if "HIGH" in risk else "#FFA500" if "MEDIUM" in risk else "#00FF00"
-                        
                         st.markdown(f"""
                             <div class="metric-card">
                                 <div class="card-label">Sprint {row['sprint']}</div>
@@ -150,23 +170,25 @@ if st.session_state.get('run'):
                             </div>
                         """, unsafe_allow_html=True)
                 
-                st.markdown("<br><br>", unsafe_allow_html=True)
+                st.markdown("<br>", unsafe_allow_html=True)
                 
                 c1, c2 = st.columns([2, 1])
                 with c1:
-                    st.markdown("<h3 style='font-weight: 400; color: #6c757d;'>RISK TRAJECTORY</h3>", unsafe_allow_html=True)
+                    st.markdown("<h4 style='font-weight: 400; color: #6c757d;'>RISK TRAJECTORY</h4>", unsafe_allow_html=True)
                     st.line_chart(df[['ambiguity_score', 'overload_score']])
                 with c2:
-                    st.markdown("<h3 style='font-weight: 400; color: #6c757d;'>AI REASONER</h3>", unsafe_allow_html=True)
+                    st.markdown("<h4 style='font-weight: 400; color: #6c757d;'>AI REASONER</h4>", unsafe_allow_html=True)
                     for _, row in df.iterrows():
-                        with st.expander(f"Sprint {row['sprint']} Insights"):
+                        with st.expander(f"Sprint {row['sprint']} Deep Dive"):
                             st.write(f"**NLP Ambiguity:** {row['ambiguity_score']:.2f}")
                             st.write(f"**Resource Load:** {row['overload_score']:.2f}")
                             st.progress(min(row['overload_score'], 1.0))
-            else:
-                st.error("Processing failed. Results not found.")
-
     except Exception as e:
-        st.error(f"System Error: {e}")
+        st.error(f"System Crash: {e}")
 else:
-    st.markdown("<div style='text-align: center; padding: 100px; color: #444;'><h2 style='font-weight: 300;'>Engine Standby</h2><p>Provide project data in the sidebar to initialize the validation layer.</p></div>", unsafe_allow_html=True)
+    st.markdown("""
+        <div style='text-align: center; padding: 100px; color: #444; border: 1px dashed rgba(255,255,255,0.1); border-radius: 20px;'>
+            <h2 style='font-weight: 300;'>Engine Standby</h2>
+            <p>Upload files in the Control Panel to initialize validation and analysis.</p>
+        </div>
+    """, unsafe_allow_html=True)
