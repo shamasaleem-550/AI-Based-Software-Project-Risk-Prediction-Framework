@@ -1,31 +1,46 @@
 import pandas as pd
-from sklearn.ensemble import RandomForestClassifier
-from sklearn.model_selection import train_test_split
-from sklearn.metrics import classification_report
-import joblib
+import os
 
 def train_hybrid_model():
-    # Load combined data
-    df = pd.read_csv("results/combined_risk_data.csv")
+    """
+    Advanced Heuristic Risk Engine:
+    Calculates a weighted probability of project failure based on 
+    Linguistic Ambiguity and Resource Strain.
+    """
+    results_path = "results/combined_risk_data.csv"
+    
+    if not os.path.exists(results_path):
+        return "Combined dataset not found. Run combined_data.py first."
 
-    X = df[['ambiguity_score', 'overload_score']]
-    y = df['risk_level']
+    df = pd.read_csv(results_path)
 
-    # Split into training and test sets
-    X_train, X_test, y_train, y_test = train_test_split(
-        X, y, test_size=0.3, random_state=42
-    )
+    # --- ADVANCED RISK CALCULATION ---
+    # We assign weights: Resource Overload is high impact (0.7), Ambiguity is medium (0.3)
+    W_RESOURCE = 0.7
+    W_AMBIGUITY = 0.3
 
-    # Train Random Forest Classifier
-    clf = RandomForestClassifier(n_estimators=100, random_state=42)
-    clf.fit(X_train, y_train)
+    def calculate_advanced_risk(row):
+        # 1. Normalize scores to a 0-1 scale
+        ambiguity = min(row['ambiguity_score'] / 10, 1.0)
+        # Resource strain starts being a risk after 1.0 (100% capacity)
+        resource_strain = max(0, (row['overload_score'] - 1.0)) 
+        
+        # 2. Weighted Score
+        composite_score = (ambiguity * W_AMBIGUITY) + (resource_strain * W_RESOURCE)
+        
+        # 3. Decision Logic (Advanced Thresholds)
+        if resource_strain > 0.4 or composite_score > 0.7:
+            return "HIGH (Critical)"
+        elif composite_score > 0.35:
+            return "MEDIUM (Warning)"
+        else:
+            return "LOW (Stable)"
 
-    # Predictions & metrics
-    y_pred = clf.predict(X_test)
-    print(classification_report(y_test, y_pred))
+    df['risk_level'] = df.apply(calculate_advanced_risk, axis=1)
+    
+    # Save the sophisticated results
+    df.to_csv(results_path, index=False)
+    print("Advanced Hybrid Risk Analysis Complete.")
 
-    # Save trained model
-    joblib.dump(clf, 'results/hybrid_risk_model.pkl')
-    print("Hybrid risk model saved to results/hybrid_risk_model.pkl")
-
-    return clf
+if __name__ == "__main__":
+    train_hybrid_model()
