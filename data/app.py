@@ -20,94 +20,129 @@ except ImportError as e:
 # --- 3. PAGE CONFIGURATION ---
 st.set_page_config(page_title="SentianRisk AI", layout="wide", page_icon="🛡️")
 
-# Professional UI Styling
+# --- 4. CUSTOM CSS (The "Classic Professional" Look) ---
 st.markdown("""
     <style>
-    .stMetric { 
-        background-color: #1E1E1E !important; 
-        color: white !important;
-        padding: 25px; 
-        border-radius: 15px; 
-        border: 1px solid #3E3E3E;
+    /* Main Background */
+    .stApp {
+        background-color: #0E1117;
     }
-    .explanation-box {
-        background-color: #262730;
-        border-left: 5px solid #FF4B4B;
-        padding: 15px;
-        border-radius: 5px;
-        margin-top: 10px;
+    
+    /* Custom Card Styling */
+    .metric-card {
+        background: rgba(255, 255, 255, 0.03);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 12px;
+        padding: 25px;
+        text-align: center;
+        transition: transform 0.3s ease;
+    }
+    .metric-card:hover {
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        transform: translateY(-5px);
+    }
+    
+    /* Titles and Headers */
+    h1, h2, h3 {
+        font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+        font-weight: 700 !important;
+        letter-spacing: -0.5px;
+    }
+    
+    /* Sidebar Styling */
+    section[data-testid="stSidebar"] {
+        background-color: #161B22 !important;
+        border-right: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    
+    /* Clean Divider */
+    hr {
+        margin: 2em 0;
+        border: 0;
+        border-top: 1px solid rgba(255, 255, 255, 0.1);
     }
     </style>
     """, unsafe_allow_html=True)
 
-st.title("🛡️ SentianRisk AI: Intelligent Project Oversight")
-st.markdown(f"**Developed by SHAMA SALEEM** | FYP Edition: Hybrid NLP & Resource Analysis")
+# --- 5. TOP NAVIGATION/HEADER ---
+col_t1, col_t2 = st.columns([3, 1])
+with col_t1:
+    st.title("🛡️ SentianRisk AI")
+    st.caption("Intelligent Framework for Software Project Risk Prediction")
+with col_t2:
+    st.markdown("<br>", unsafe_allow_html=True)
+    st.markdown(f"**Researcher:** `SHAMA SALEEM`", unsafe_allow_html=True)
 
-# --- 4. SIDEBAR ---
+st.markdown("---")
+
+# --- 6. SIDEBAR ---
 with st.sidebar:
-    st.header("📁 Data Input")
-    requirements_file = st.file_uploader("1. Requirements (.txt)", type=["txt"])
-    sprint_file = st.file_uploader("2. Sprint Tasks (.csv)", type=["csv"])
+    st.image("https://cdn-icons-png.flaticon.com/512/2103/2103633.png", width=80)
+    st.header("Control Panel")
+    st.write("Upload your technical documentation to begin analysis.")
     
-    st.markdown("---")
-    st.subheader("💡 FYP Research Templates")
-    sample_req = "System must allow user login. The interface should be fast and scalable."
-    st.download_button("📥 Sample Requirements", sample_req, "sample_req.txt")
-    sample_csv = "sprint,task_name,hours_assigned,developer_capacity\n1,UI Design,45,40\n2,Database,20,40\n3,API Integration,60,40"
-    st.download_button("📥 Sample Sprint Data", sample_csv, "sample_sprint.csv")
+    req_file = st.file_uploader("Requirement Specification (.txt)", type=["txt"])
+    spr_file = st.file_uploader("Sprint Workload (.csv)", type=["csv"])
+    
+    if st.button("🚀 Execute AI Analysis", use_container_width=True):
+        if req_file and spr_file:
+            st.session_state['run_analysis'] = True
+        else:
+            st.error("Missing files.")
 
-# --- 5. MAIN LOGIC ---
-if requirements_file and sprint_file:
-    if st.button("🔍 Run Advanced AI Risk Analysis", use_container_width=True):
-        try:
-            os.makedirs(os.path.join(root_path, "data"), exist_ok=True)
-            os.makedirs(os.path.join(root_path, "results"), exist_ok=True)
+# --- 7. MAIN DASHBOARD ---
+if st.session_state.get('run_analysis'):
+    try:
+        # Save and Run Backend
+        with open(os.path.join(root_path, "data", "requirements.txt"), "wb") as f:
+            f.write(req_file.getvalue())
+        with open(os.path.join(root_path, "data", "sprint_tasks.csv"), "wb") as f:
+            f.write(spr_file.getvalue())
 
-            with open(os.path.join(root_path, "data", "requirements.txt"), "wb") as f:
-                f.write(requirements_file.getvalue())
-            with open(os.path.join(root_path, "data", "sprint_tasks.csv"), "wb") as f:
-                f.write(sprint_file.getvalue())
+        with st.spinner("Processing Hybrid Risk Metrics..."):
+            create_combined_dataset()
+            train_hybrid_model()
 
-            with st.spinner("🧠 Deep Learning Models Analyzing Requirements..."):
-                create_combined_dataset()
-                train_hybrid_model()
-
-            res_path = os.path.join(root_path, "results", "combined_risk_data.csv")
-            if os.path.exists(res_path):
-                df = pd.read_csv(res_path)
-                
-                st.subheader("📊 Sprint Risk Dashboard")
-                cols = st.columns(len(df))
-                
-                for i, (_, row) in enumerate(df.iterrows()):
-                    with cols[i]:
-                        risk = str(row['risk_level']).strip().upper()
-                        # Traffic Light Logic
-                        if "HIGH" in risk: icon, color = "🔴", "#FF4B4B"
-                        elif "MEDIUM" in risk: icon, color = "🟠", "#FFA500"
-                        else: icon, color = "🟢", "#00FF00"
-                        
-                        st.metric(label=f"Sprint {row['sprint']}", value=f"{icon} {risk}")
-                        
-                        # --- MODIFICATION: AI EXPLANATION LOGIC ---
-                        with st.expander("ℹ️ AI Risk Reason"):
-                            if "HIGH" in risk:
-                                st.write(f"⚠️ **Reasoning:** Hours assigned ({row['hours_assigned']}) significantly exceed capacity ({row['developer_capacity']}). High potential for burnout.")
-                            elif "MEDIUM" in risk:
-                                st.write(f"🟠 **Reasoning:** Ambiguity score is moderate. Requirements may need more detail to avoid rework.")
-                            else:
-                                st.write("✅ **Reasoning:** Resources are balanced and requirements are clear.")
-
-                st.markdown("---")
-                # --- MODIFICATION: TREND ANALYSIS WITH LABELS ---
-                st.subheader("📈 Quantitative Risk Trends")
+        res_path = os.path.join(root_path, "results", "combined_risk_data.csv")
+        if os.path.exists(res_path):
+            df = pd.read_csv(res_path)
+            
+            # Metric Row
+            st.subheader("Executive Summary")
+            cols = st.columns(len(df))
+            
+            for i, (_, row) in enumerate(df.iterrows()):
+                with cols[i]:
+                    risk = str(row['risk_level']).strip().upper()
+                    # Assigning Icon and color based on logic
+                    if "HIGH" in risk: color, icon = "#FF4B4B", "🔴"
+                    elif "MEDIUM" in risk: color, icon = "#FFA500", "🟠"
+                    else: color, icon = "#00FF00", "🟢"
+                    
+                    # Classic HTML Card
+                    st.markdown(f"""
+                        <div class="metric-card">
+                            <p style="color: #888; margin-bottom: 5px; font-size: 0.9em;">SPRINT {row['sprint']}</p>
+                            <h2 style="color: {color}; margin: 0;">{icon} {risk}</h2>
+                        </div>
+                    """, unsafe_allow_html=True)
+            
+            st.markdown("---")
+            
+            # Analytics Row
+            c1, c2 = st.columns([2, 1])
+            with c1:
+                st.subheader("Risk Distribution Trend")
                 st.line_chart(df[['ambiguity_score', 'overload_score']])
-                st.info("The Blue line represents Linguistic Ambiguity (NLP), and the Light Blue represents Resource Strain.")
-                
-            else:
-                st.error("Analysis completed but results were not generated.")
-
-        except Exception as e:
-            st.error(f"Critical Error: {e}")
+            with c2:
+                st.subheader("AI Decision Logic")
+                for _, row in df.iterrows():
+                    with st.expander(f"Analysis: Sprint {row['sprint']}"):
+                        st.write(f"**Linguistic Risk:** {row['ambiguity_score']:.2f}")
+                        st.write(f"**Capacity Risk:** {row['overload_score']:.2f}")
+                        st.progress(row['overload_score'])
+        
+    except Exception as e:
+        st.error(f"Analysis Interrupted: {e}")
 else:
-    st.warning("👈 Please upload files to start the FYP Analysis Framework.")
+    st.info("👋 Welcome. Please upload your project data in the sidebar to generate the risk dashboard.")
