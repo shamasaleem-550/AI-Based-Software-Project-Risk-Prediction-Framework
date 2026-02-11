@@ -3,7 +3,7 @@ import os
 import pandas as pd
 import streamlit as st
 
-# 1. Path Setup: Add parent directory so 'src' can be found
+# 1. Path Setup
 current_dir = os.path.dirname(os.path.abspath(__file__))
 parent_dir = os.path.dirname(current_dir)
 sys.path.append(parent_dir)
@@ -25,11 +25,11 @@ sprint_file = st.file_uploader("Upload Sprint Tasks (.csv)", type=["csv"])
 if requirements_file and sprint_file:
     if st.button("🔍 Analyze Project Risk"):
         try:
-            # Ensure folders exist relative to project root
+            # Create necessary folders
             os.makedirs(os.path.join(parent_dir, "data"), exist_ok=True)
             os.makedirs(os.path.join(parent_dir, "results"), exist_ok=True)
 
-            # Save files to project root
+            # Save uploaded files
             with open(os.path.join(parent_dir, "data/requirements.txt"), "w") as f:
                 f.write(requirements_file.getvalue().decode("utf-8"))
             
@@ -39,19 +39,21 @@ if requirements_file and sprint_file:
             create_combined_dataset()
             train_hybrid_model()
 
-            # Load Results
+            # Load and Display Results
             res_path = os.path.join(parent_dir, "results/combined_risk_data.csv")
-            combined = pd.read_csv(res_path)
+            if os.path.exists(res_path):
+                combined = pd.read_csv(res_path)
+                st.subheader("📊 Risk Analysis Results")
+                st.bar_chart(combined[['ambiguity_score', 'overload_score']])
+                st.success("Analysis Complete ✅")
 
-            st.subheader("📊 Risk Analysis Results")
-            st.bar_chart(combined[['ambiguity_score', 'overload_score']])
-            st.success("Analysis Complete ✅")
-
-            # Download Button Logic
-            report_path = os.path.join(parent_dir, "results/ambiguity_report.csv")
-            if os.path.exists(report_path):
-                with open(report_path, "rb") as f:
-                    st.download_button("📥 Download Report", f, "risk_report.csv", "text/csv")
+                # Download Button
+                report_path = os.path.join(parent_dir, "results/ambiguity_report.csv")
+                if os.path.exists(report_path):
+                    with open(report_path, "rb") as f:
+                        st.download_button("📥 Download Report", f, "risk_report.csv", "text/csv")
+            else:
+                st.error("Result files were not generated. Check backend logic.")
 
         except Exception as e:
             st.error(f"Analysis failed: {e}")
