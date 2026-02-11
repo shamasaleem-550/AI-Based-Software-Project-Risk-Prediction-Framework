@@ -1,59 +1,95 @@
-import sys
-import os
-import pandas as pd
 import streamlit as st
+import pandas as pd
+import os
 
-# 1. Path Setup
-current_dir = os.path.dirname(os.path.abspath(__file__))
-parent_dir = os.path.dirname(current_dir)
-sys.path.append(parent_dir)
+# Import backend logic
+from src.combined_data import create_combined_dataset
+from src.hybrid_risk_model import train_hybrid_model
 
-# 2. Backend Imports
-try:
-    from src.combined_data import create_combined_dataset
-    from src.hybrid_risk_model import train_hybrid_model
-except ImportError as e:
-    st.error(f"Failed to import backend modules: {e}")
+# Page configuration
+st.set_page_config(
+    page_title="AI Software Project Risk Predictor",
+    layout="centered",
+    initial_sidebar_state="collapsed"
+)
 
-st.set_page_config(page_title="AI Risk Predictor", layout="centered")
+# Title
 st.title("🚀 AI-Based Software Project Risk Predictor")
 
-# 3. File Uploaders
-requirements_file = st.file_uploader("Upload Requirements (.txt)", type=["txt"])
-sprint_file = st.file_uploader("Upload Sprint Tasks (.csv)", type=["csv"])
+st.write("""
+Upload your project requirement file and sprint task CSV
+to analyze software project risk using AI.
+""")
+
+# Upload Section
+st.subheader("📂 Upload Project Files")
+
+requirements_file = st.file_uploader("Upload Requirements File (.txt)", type=["txt"])
+sprint_file = st.file_uploader("Upload Sprint Task File (.csv)", type=["csv"])
 
 if requirements_file and sprint_file:
+
+    st.success("Files uploaded successfully!")
+
     if st.button("🔍 Analyze Project Risk"):
-        try:
-            # Create necessary folders
-            os.makedirs(os.path.join(parent_dir, "data"), exist_ok=True)
-            os.makedirs(os.path.join(parent_dir, "results"), exist_ok=True)
 
-            # Save uploaded files
-            with open(os.path.join(parent_dir, "data/requirements.txt"), "w") as f:
-                f.write(requirements_file.getvalue().decode("utf-8"))
-            
-            pd.read_csv(sprint_file).to_csv(os.path.join(parent_dir, "data/sprint_tasks.csv"), index=False)
+        # Ensure folders exist
+        os.makedirs("data", exist_ok=True)
+        os.makedirs("results", exist_ok=True)
 
-            st.info("AI is analyzing...")
-            create_combined_dataset()
-            train_hybrid_model()
+        # Save uploaded files
+        with open("data/requirements.txt", "w") as f:
+            f.write(requirements_file.getvalue().decode("utf-8"))
 
-            # Load and Display Results
-            res_path = os.path.join(parent_dir, "results/combined_risk_data.csv")
-            if os.path.exists(res_path):
-                combined = pd.read_csv(res_path)
-                st.subheader("📊 Risk Analysis Results")
-                st.bar_chart(combined[['ambiguity_score', 'overload_score']])
-                st.success("Analysis Complete ✅")
+        sprint_df = pd.read_csv(sprint_file)
+        sprint_df.to_csv("data/sprint_tasks.csv", index=False)
 
-                # Download Button
-                report_path = os.path.join(parent_dir, "results/ambiguity_report.csv")
-                if os.path.exists(report_path):
-                    with open(report_path, "rb") as f:
-                        st.download_button("📥 Download Report", f, "risk_report.csv", "text/csv")
+        st.info("Running AI analysis...")
+
+        # Run backend logic
+        create_combined_dataset()
+        model = train_hybrid_model()
+
+        # Load results
+        combined = pd.read_csv("results/combined_risk_data.csv")
+
+        st.subheader("📊 Project Risk Dashboard")
+
+        high_count = 0
+
+        for _, row in combined.iterrows():
+
+            sprint = row['sprint']
+            ambiguity = row['ambiguity_score']
+            overload = row['overload_score']
+            risk = row['risk_level']
+
+            col1, col2, col3 = st.columns(3)
+
+            col1.metric("Sprint", sprint)
+            col2.metric("Ambiguity Score", round(ambiguity, 2))
+            col3.metric("Overload Score", round(overload, 2))
+
+            if risk == "High":
+                st.error(f"🚨 Sprint {sprint} → HIGH RISK")
+                high_count += 1
+            elif risk == "Medium":
+                st.warning(f"⚠ Sprint {sprint} → MEDIUM RISK")
             else:
-                st.error("Result files were not generated. Check backend logic.")
+                st.success(f"✅ Sprint {sprint} → LOW RISK")
 
-        except Exception as e:
-            st.error(f"Analysis failed: {e}")
+            st.markdown("---")
+
+        # Chart
+        st.bar_chart(combined[['ambiguity_score', 'overload_score']])
+
+        # Overall Status
+        st.subheader("📌 Overall Project Status")
+
+        if high_count > 0:
+            st.error("Overall Project Risk: HIGH")
+        else:
+            st.success("Overall Project Risk: STABLE")
+
+        st.success("Analysis Complete ✅")
+
