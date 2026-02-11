@@ -1,104 +1,158 @@
 import streamlit as st
 import pandas as pd
 import os
+import numpy as np
 
 from src.combined_data import create_combined_dataset
 from src.hybrid_risk_model import train_hybrid_model
 
-# -------------------------------
+# ------------------------------------------------
 # PAGE CONFIG
-# -------------------------------
+# ------------------------------------------------
 st.set_page_config(
-    page_title="AI Risk Intelligence",
+    page_title="AI Risk Intelligence Platform",
     page_icon="📊",
-    layout="wide",
-    initial_sidebar_state="expanded"
+    layout="wide"
 )
 
-# -------------------------------
-# CUSTOM CLEAN STYLING
-# -------------------------------
+# ------------------------------------------------
+# CLEAN PROFESSIONAL STYLE
+# ------------------------------------------------
 st.markdown("""
-    <style>
-    .main {
-        background-color: #f8f9fa;
-    }
-    .block-container {
-        padding-top: 2rem;
-        padding-bottom: 2rem;
-    }
-    h1 {
-        font-weight: 600;
-    }
-    </style>
+<style>
+.main {
+    background-color: #f4f6f9;
+}
+.block-container {
+    padding-top: 2rem;
+}
+h1, h2, h3 {
+    font-weight: 600;
+}
+.metric-card {
+    background-color: white;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0px 2px 10px rgba(0,0,0,0.05);
+}
+</style>
 """, unsafe_allow_html=True)
 
-# -------------------------------
+# ------------------------------------------------
 # SIDEBAR
-# -------------------------------
+# ------------------------------------------------
 st.sidebar.title("AI Risk Intelligence")
-st.sidebar.markdown("### Navigation")
-page = st.sidebar.radio("Go to", ["Dashboard", "About System"])
+menu = st.sidebar.radio("Navigation", ["Dashboard", "Architecture", "About"])
 
-# -------------------------------
+# ------------------------------------------------
 # ABOUT PAGE
-# -------------------------------
-if page == "About System":
-    st.title("About This System")
+# ------------------------------------------------
+if menu == "About":
+    st.title("About This AI System")
+
     st.markdown("""
-    **AI Risk Intelligence Platform**  
+    ### AI-Based Software Risk Intelligence Platform
 
     This system predicts software project risk using:
 
-    - Natural Language Processing (Requirement Ambiguity Detection)
-    - Sprint Overload Analysis
+    - NLP-based Requirement Ambiguity Detection
+    - Sprint Overload Analytics
     - Hybrid Machine Learning Model
     - Risk Classification & Visualization
+    - Executive Reporting
 
-    Designed for IT companies and software project managers.
+    Designed for IT companies, project managers, and CTO dashboards.
     """)
+
     st.stop()
 
-# -------------------------------
-# DASHBOARD PAGE
-# -------------------------------
-st.title("📊 AI-Based Software Project Risk Intelligence")
+# ------------------------------------------------
+# ARCHITECTURE PAGE
+# ------------------------------------------------
+if menu == "Architecture":
+    st.title("System Architecture")
 
-st.markdown("Upload your project files to analyze risk levels using AI.")
+    st.markdown("""
+    ### System Flow
 
-st.markdown("---")
+    1. User uploads requirements & sprint tasks  
+    2. Ambiguity detection module analyzes requirement clarity  
+    3. Overload detection calculates sprint stress  
+    4. Hybrid ML model predicts risk level  
+    5. Dashboard visualizes executive insights  
+    """)
 
-col_upload1, col_upload2 = st.columns(2)
+    st.info("Architecture: Input → Feature Engineering → Hybrid Model → Risk Classification → Visualization")
 
-with col_upload1:
-    requirements_file = st.file_uploader("Upload Requirements (.txt)", type=["txt"])
+    st.stop()
 
-with col_upload2:
+# ------------------------------------------------
+# DASHBOARD
+# ------------------------------------------------
+st.title("📊 AI Software Project Risk Dashboard")
+
+st.markdown("Upload project files for intelligent risk analysis.")
+
+col1, col2 = st.columns(2)
+
+with col1:
+    req_file = st.file_uploader("Upload Requirements (.txt)", type=["txt"])
+
+with col2:
     sprint_file = st.file_uploader("Upload Sprint Tasks (.csv)", type=["csv"])
 
-st.markdown("---")
+if req_file and sprint_file:
 
-if requirements_file and sprint_file:
-
-    if st.button("Analyze Project Risk", use_container_width=True):
+    if st.button("Run AI Risk Analysis", use_container_width=True):
 
         os.makedirs("data", exist_ok=True)
         os.makedirs("results", exist_ok=True)
 
-        # Save files
         with open("data/requirements.txt", "w") as f:
-            f.write(requirements_file.getvalue().decode("utf-8"))
+            f.write(req_file.getvalue().decode("utf-8"))
 
         sprint_df = pd.read_csv(sprint_file)
         sprint_df.to_csv("data/sprint_tasks.csv", index=False)
 
-        with st.spinner("Running AI Risk Analysis..."):
+        with st.spinner("Running AI Model..."):
             create_combined_dataset()
             train_hybrid_model()
 
         combined = pd.read_csv("results/combined_risk_data.csv")
 
-        st.markdown("## 📈 Risk Dashboard")
+        # ------------------------------------------------
+        # EXECUTIVE SUMMARY
+        # ------------------------------------------------
+        st.markdown("## Executive Summary")
+
+        high = (combined["risk_level"] == "High").sum()
+        medium = (combined["risk_level"] == "Medium").sum()
+        low = (combined["risk_level"] == "Low").sum()
+
+        total = len(combined)
+        risk_score = round((high*1 + medium*0.5) / total * 100, 2)
+
+        colA, colB, colC, colD = st.columns(4)
+
+        colA.metric("Total Sprints", total)
+        colB.metric("High Risk", high)
+        colC.metric("Medium Risk", medium)
+        colD.metric("Overall Risk %", f"{risk_score}%")
+
+        if risk_score > 60:
+            st.error("Project Status: CRITICAL 🚨")
+        elif risk_score > 30:
+            st.warning("Project Status: MODERATE ⚠")
+        else:
+            st.success("Project Status: STABLE ✅")
+
         st.markdown("---")
 
-        hig
+        # ------------------------------------------------
+        # DETAILED SPRINT VIEW
+        # ------------------------------------------------
+        st.markdown("## Sprint-Level Risk Analysis")
+
+        for _, row in combined.iterrows():
+            st.markdown(f"### Sprint {row['sprint']}")
+            colX
