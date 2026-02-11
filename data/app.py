@@ -1,6 +1,10 @@
-import streamlit as st
-import pandas as pd
+import sys
 import os
+import pandas as pd
+import streamlit as st
+
+# Add the parent directory to the path so it can find the 'src' folder
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 # Import your backend logic
 from src.combined_data import create_combined_dataset
@@ -26,51 +30,50 @@ requirements_file = st.file_uploader("Upload Requirements File (.txt)", type=["t
 sprint_file = st.file_uploader("Upload Sprint Task File (.csv)", type=["csv"])
 
 if requirements_file and sprint_file:
-
     st.success("Files uploaded successfully!")
 
     if st.button("🔍 Analyze Project Risk"):
-
-        # Ensure data folders exist
-        os.makedirs("data", exist_ok=True)
-        os.makedirs("results", exist_ok=True)
+        # Ensure data and results folders exist relative to the root
+        os.makedirs("../data", exist_ok=True)
+        os.makedirs("../results", exist_ok=True)
 
         # Save uploaded files
-        with open("data/requirements.txt", "w") as f:
+        with open("../data/requirements.txt", "w") as f:
             f.write(requirements_file.getvalue().decode("utf-8"))
 
         sprint_df = pd.read_csv(sprint_file)
-        sprint_df.to_csv("data/sprint_tasks.csv", index=False)
+        sprint_df.to_csv("../data/sprint_tasks.csv", index=False)
 
         st.info("Running AI analysis...")
 
         # Run backend modules
-        create_combined_dataset()
-        model = train_hybrid_model()
+        try:
+            create_combined_dataset()
+            model = train_hybrid_model()
 
-        # Load results
-        combined = pd.read_csv("results/combined_risk_data.csv")
+            # Load results
+            combined = pd.read_csv("../results/combined_risk_data.csv")
 
-        st.subheader("📊 Risk Analysis Results")
+            st.subheader("📊 Risk Analysis Results")
 
-        for _, row in combined.iterrows():
+            for _, row in combined.iterrows():
+                st.metric(
+                    label=f"Sprint {row['sprint']} Risk Level",
+                    value=row['risk_level']
+                )
+                st.write(f"Ambiguity Score: {row['ambiguity_score']}")
+                st.write(f"Overload Score: {row['overload_score']}")
 
-            st.metric(
-                label=f"Sprint {row['sprint']} Risk Level",
-                value=row['risk_level']
-            )
+            st.bar_chart(combined[['ambiguity_score', 'overload_score']])
+            st.success("Analysis Complete ✅")
 
-            st.write(f"Ambiguity Score: {row['ambiguity_score']}")
-            st.write(f"Overload Score: {row['overload_score']}")
-
-        st.bar_chart(combined[['ambiguity_score', 'overload_score']])
-
-        st.success("Analysis Complete ✅")
-# Create a download button for the results
-with open("../results/ambiguity_report.csv", "rb") as file:
-    st.download_button(
-        label="📥 Download Risk Analysis Report",
-        data=file,
-        file_name="risk_analysis_report.csv",
-        mime="text/csv"
-    )
+            # Create a download button specifically for the results generated
+            with open("../results/ambiguity_report.csv", "rb") as file:
+                st.download_button(
+                    label="📥 Download Risk Analysis Report",
+                    data=file,
+                    file_name="risk_analysis_report.csv",
+                    mime="text/csv"
+                )
+        except Exception as e:
+            st.error(f"An error occurred during analysis: {e}")
