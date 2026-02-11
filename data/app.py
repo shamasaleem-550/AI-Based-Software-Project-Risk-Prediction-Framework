@@ -15,100 +15,81 @@ try:
     from src.combined_data import create_combined_dataset
     from src.hybrid_risk_model import train_hybrid_model
 except ImportError as e:
-    st.error(f"Module import failed. Check your folder structure. Error: {e}")
+    st.error(f"Module import failed. Error: {e}")
 
 # --- 3. PAGE CONFIGURATION ---
 st.set_page_config(page_title="AI Project Risk Predictor", layout="wide")
 
+# Custom CSS for better visibility of the "White Boxes"
 st.markdown("""
     <style>
-    .main { background-color: #f8f9fa; }
-    .stMetric { background-color: #ffffff; padding: 15px; border-radius: 10px; border: 1px solid #e0e0e0; }
+    .stMetric { 
+        background-color: #1E1E1E !important; 
+        color: white !important;
+        padding: 20px; 
+        border-radius: 12px; 
+        border: 2px solid #4B4B4B;
+        box-shadow: 2px 2px 10px rgba(0,0,0,0.5);
+    }
+    [data-testid="stMetricValue"] {
+        color: white !important;
+    }
     </style>
     """, unsafe_allow_html=True)
 
 st.title("🚀 AI-Based Software Project Risk Predictor")
-st.markdown("Developed by **SHAMA SALEEM** | Framework for NLP & Resource Risk Analysis")
+st.markdown("Developed by **SHAMA SALEEM**")
 
-# --- 4. SIDEBAR - FILE UPLOADS & SAMPLE DATA ---
+# --- 4. SIDEBAR ---
 with st.sidebar:
     st.header("📁 Data Input")
-    st.write("Upload project files to begin.")
-    
     requirements_file = st.file_uploader("1. Upload Requirements (.txt)", type=["txt"])
     sprint_file = st.file_uploader("2. Upload Sprint Tasks (.csv)", type=["csv"])
-    
     st.markdown("---")
-    st.subheader("💡 Don't have files?")
-    st.caption("Use these templates to test the AI logic:")
-    
-    # Sample Text Data
-    sample_req = "The system must be robust and fast. We might need a flexible login etc."
-    st.download_button("📥 Download Sample .txt", sample_req, "sample_req.txt")
-
-    # Sample CSV Data
-    sample_csv = "sprint,task_name,hours_assigned,developer_capacity\n1,Database Setup,45,40\n2,UI Integration,20,40\n3,API Testing,50,40"
-    st.download_button("📥 Download Sample .csv", sample_csv, "sample_sprint.csv")
-    
-    st.markdown("---")
-    st.info("This tool detects ambiguity in text and overload in resource capacity.")
+    st.subheader("💡 Sample Data")
+    sample_req = "System must be fast. Requirements are flexible."
+    st.download_button("📥 Sample .txt", sample_req, "sample_req.txt")
+    sample_csv = "sprint,task_name,hours_assigned,developer_capacity\n1,Task A,45,40\n2,Task B,20,40"
+    st.download_button("📥 Sample .csv", sample_csv, "sample_sprint.csv")
 
 # --- 5. MAIN LOGIC ---
 if requirements_file and sprint_file:
     if st.button("🔍 Run Full AI Risk Analysis", use_container_width=True):
         try:
-            # Create directories
             os.makedirs(os.path.join(root_path, "data"), exist_ok=True)
             os.makedirs(os.path.join(root_path, "results"), exist_ok=True)
 
-            # Save files
-            req_path = os.path.join(root_path, "data", "requirements.txt")
-            with open(req_path, "wb") as f:
+            with open(os.path.join(root_path, "data", "requirements.txt"), "wb") as f:
                 f.write(requirements_file.getvalue())
-            
-            sprint_path = os.path.join(root_path, "data", "sprint_tasks.csv")
-            with open(sprint_path, "wb") as f:
+            with open(os.path.join(root_path, "data", "sprint_tasks.csv"), "wb") as f:
                 f.write(sprint_file.getvalue())
 
-            # AI Processing
-            with st.spinner("🧠 AI Engine processing data..."):
+            with st.spinner("🧠 AI Processing..."):
                 create_combined_dataset()
                 train_hybrid_model()
 
-            # --- 6. DISPLAY RESULTS ---
             res_path = os.path.join(root_path, "results", "combined_risk_data.csv")
-            
             if os.path.exists(res_path):
                 df = pd.read_csv(res_path)
-                
                 st.subheader("📊 Sprint Risk Dashboard")
                 cols = st.columns(len(df))
                 
                 for i, (_, row) in enumerate(df.iterrows()):
                     with cols[i]:
                         risk = str(row['risk_level']).strip().upper()
-                        color = "🔴" if risk == "HIGH" else "🟢"
-                        st.metric(label=f"Sprint {row['sprint']}", value=f"{color} {risk}")
+                        # FORCE COLOR ICON BASED ON TEXT
+                        if "HIGH" in risk:
+                            icon = "🔴"
+                        elif "MEDIUM" in risk:
+                            icon = "🟠"
+                        else:
+                            icon = "🟢"
+                        st.metric(label=f"Sprint {row['sprint']}", value=f"{icon} {risk}")
 
-                # Charts
-                st.markdown("### 📈 Technical Metrics")
-                c1, c2 = st.columns(2)
-                with c1:
-                    st.write("**Ambiguity Score (Text Analysis)**")
-                    st.area_chart(df['ambiguity_score'])
-                with c2:
-                    st.write("**Overload Score (Resource Analysis)**")
-                    st.bar_chart(df['overload_score'])
-
-                # Download Report
-                report_path = os.path.join(root_path, "results", "ambiguity_report.csv")
-                if os.path.exists(report_path):
-                    with open(report_path, "rb") as f:
-                        st.download_button("📥 Download Full Risk Report", f, "risk_report.csv", "text/csv")
-            else:
-                st.error("Processing failed. Results not found.")
-
+                st.markdown("---")
+                st.write("### 📈 Risk Trends")
+                st.line_chart(df[['ambiguity_score', 'overload_score']])
         except Exception as e:
-            st.error(f"Analysis Error: {e}")
+            st.error(f"Error: {e}")
 else:
-    st.warning("👈 Please upload your Requirements and Sprint files in the sidebar to start.")
+    st.warning("👈 Please upload files in the sidebar.")
