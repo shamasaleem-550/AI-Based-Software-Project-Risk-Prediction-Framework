@@ -44,20 +44,32 @@ if requirements_file and sprint_file:
             train_hybrid_model()
 
             # Load and Display Results
-            res_path = os.path.join(root_path, "results", "combined_risk_data.csv")
-            if os.path.exists(res_path):
-                combined = pd.read_csv(res_path)
-                st.subheader("📊 Risk Analysis Results")
-                st.bar_chart(combined[['ambiguity_score', 'overload_score']])
-                st.success("Analysis Complete ✅")
-
-                # Download Button
-                report_path = os.path.join(root_path, "results", "ambiguity_report.csv")
-                if os.path.exists(report_path):
-                    with open(report_path, "rb") as f:
-                        st.download_button("📥 Download Report", f, "risk_report.csv", "text/csv")
-            else:
-                st.error("Result files not found in /results folder.")
-
-        except Exception as e:
-            st.error(f"Analysis failed: {e}")
+           # --- START OF UPDATED RESULTS SECTION ---
+            st.markdown("---")
+            st.subheader("📊 Executive Risk Summary")
+            
+            # Create side-by-side columns for each Sprint's risk level
+            cols = st.columns(len(combined))
+            for i, (_, row) in enumerate(combined.iterrows()):
+                with cols[i]:
+                    # Visual indicator: Red for High Risk, Green for Low
+                    if row['risk_level'] == "High":
+                        st.error(f"Sprint {row['sprint']}: High Risk")
+                    else:
+                        st.success(f"Sprint {row['sprint']}: Low Risk")
+            
+            st.markdown("### 📈 Risk Score Distribution")
+            st.bar_chart(combined[['ambiguity_score', 'overload_score']])
+            
+            # The Professional Download Button
+            report_path = os.path.join(root_path, "results", "ambiguity_report.csv")
+            if os.path.exists(report_path):
+                with open(report_path, "rb") as f:
+                    st.download_button(
+                        label="📥 Download Detailed Risk Report (CSV)",
+                        data=f,
+                        file_name="risk_analysis_report.csv",
+                        mime="text/csv",
+                        use_container_width=True 
+                    )
+            # --- END OF UPDATED RESULTS SECTION ---
