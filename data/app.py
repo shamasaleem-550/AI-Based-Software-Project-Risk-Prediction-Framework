@@ -18,88 +18,105 @@ except ImportError as e:
     st.error(f"Module import failed. Error: {e}")
 
 # --- 3. PAGE CONFIGURATION ---
-st.set_page_config(page_title="SentianRisk AI", layout="wide", page_icon="🛡️")
+st.set_page_config(page_title="SentianRisk AI", layout="wide")
 
-# --- 4. CUSTOM CSS (The "Classic Professional" Look) ---
+# --- 4. AESTHETIC CSS (Glassmorphism & Neumorphism) ---
 st.markdown("""
     <style>
-    /* Main Background */
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;700;800&display=swap');
+    
+    html, body, [class*="css"] {
+        font-family: 'Inter', sans-serif;
+    }
+
     .stApp {
         background-color: #0E1117;
     }
-    
-    /* Custom Card Styling */
+
+    /* Professional Metric Cards */
     .metric-card {
-        background: rgba(255, 255, 255, 0.03);
-        border: 1px solid rgba(255, 255, 255, 0.1);
-        border-radius: 12px;
-        padding: 25px;
+        background: linear-gradient(145deg, #16181d, #1a1c23);
+        border: 1px solid rgba(255, 255, 255, 0.05);
+        border-radius: 20px;
+        padding: 35px;
         text-align: center;
-        transition: transform 0.3s ease;
+        box-shadow: 8px 8px 16px #080a0d, -4px -4px 12px #14171d;
+        transition: all 0.4s ease;
     }
+    
     .metric-card:hover {
-        border: 1px solid rgba(255, 255, 255, 0.3);
-        transform: translateY(-5px);
+        border: 1px solid rgba(79, 172, 254, 0.4);
+        transform: translateY(-8px);
     }
-    
-    /* Titles and Headers */
-    h1, h2, h3 {
-        font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
-        font-weight: 700 !important;
-        letter-spacing: -0.5px;
+
+    /* Subtext for cards */
+    .card-label {
+        color: #6c757d;
+        font-size: 0.8rem;
+        letter-spacing: 1.5px;
+        text-transform: uppercase;
+        margin-bottom: 10px;
     }
-    
-    /* Sidebar Styling */
-    section[data-testid="stSidebar"] {
-        background-color: #161B22 !important;
-        border-right: 1px solid rgba(255, 255, 255, 0.1);
-    }
-    
-    /* Clean Divider */
-    hr {
-        margin: 2em 0;
-        border: 0;
-        border-top: 1px solid rgba(255, 255, 255, 0.1);
+
+    /* Sidebar Refinement */
+    [data-testid="stSidebar"] {
+        background-color: #0B0D11 !important;
+        border-right: 1px solid rgba(255, 255, 255, 0.05);
     }
     </style>
     """, unsafe_allow_html=True)
 
-# --- 5. TOP NAVIGATION/HEADER ---
+# --- 5. CLEAN HEADER (NO STICKERS) ---
+st.markdown("<br>", unsafe_allow_html=True)
 col_t1, col_t2 = st.columns([3, 1])
+
 with col_t1:
-    st.title("🛡️ SentianRisk AI")
-    st.caption("Intelligent Framework for Software Project Risk Prediction")
+    st.markdown("""
+        <h1 style='letter-spacing: 3px; font-weight: 300; margin-bottom: 0px; color: white;'>
+            SENTIAN<span style='font-weight: 800; color: #4facfe;'>RISK</span> AI
+        </h1>
+        <p style='color: #6c757d; font-size: 1rem; margin-top: 0px; font-weight: 400;'>
+            HYBRID PREDICTIVE INTELLIGENCE FOR AGILE FRAMEWORKS
+        </p>
+    """, unsafe_allow_html=True)
+
 with col_t2:
     st.markdown("<br>", unsafe_allow_html=True)
-    st.markdown(f"**Researcher:** `SHAMA SALEEM`", unsafe_allow_html=True)
+    st.markdown(f"""
+        <div style='text-align: right; border-left: 2px solid #4facfe; padding-left: 15px;'>
+            <span style='color: #4facfe; font-size: 0.8rem; font-weight: 700;'>RESEARCHER</span><br>
+            <span style='color: white; font-size: 1rem; font-weight: 300;'>SHAMA SALEEM</span>
+        </div>
+    """, unsafe_allow_html=True)
 
-st.markdown("---")
+st.markdown("<hr style='border-top: 1px solid rgba(255,255,255,0.05); margin-top: 30px; margin-bottom: 40px;'>", unsafe_allow_html=True)
 
-# --- 6. SIDEBAR ---
+# --- 6. SIDEBAR CONTROL PANEL ---
 with st.sidebar:
-    st.image("https://cdn-icons-png.flaticon.com/512/2103/2103633.png", width=80)
-    st.header("Control Panel")
-    st.write("Upload your technical documentation to begin analysis.")
+    st.markdown("<h2 style='font-weight: 800; font-size: 1.2rem;'>CONTROL PANEL</h2>", unsafe_allow_html=True)
+    st.write("Upload project metadata for heuristic processing.")
     
-    req_file = st.file_uploader("Requirement Specification (.txt)", type=["txt"])
-    spr_file = st.file_uploader("Sprint Workload (.csv)", type=["csv"])
+    req_file = st.file_uploader("Project Requirements (.txt)", type=["txt"])
+    spr_file = st.file_uploader("Resource Data (.csv)", type=["csv"])
     
-    if st.button("🚀 Execute AI Analysis", use_container_width=True):
+    st.markdown("---")
+    if st.button("RUN ENGINE", use_container_width=True):
         if req_file and spr_file:
-            st.session_state['run_analysis'] = True
+            st.session_state['ready'] = True
         else:
-            st.error("Missing files.")
+            st.error("Please provide both datasets.")
 
-# --- 7. MAIN DASHBOARD ---
-if st.session_state.get('run_analysis'):
+# --- 7. DASHBOARD LOGIC ---
+if st.session_state.get('ready'):
     try:
-        # Save and Run Backend
+        # File System Operations
+        os.makedirs(os.path.join(root_path, "data"), exist_ok=True)
         with open(os.path.join(root_path, "data", "requirements.txt"), "wb") as f:
             f.write(req_file.getvalue())
         with open(os.path.join(root_path, "data", "sprint_tasks.csv"), "wb") as f:
             f.write(spr_file.getvalue())
 
-        with st.spinner("Processing Hybrid Risk Metrics..."):
+        with st.spinner("Decoding Linguistic and Resource Patterns..."):
             create_combined_dataset()
             train_hybrid_model()
 
@@ -107,42 +124,45 @@ if st.session_state.get('run_analysis'):
         if os.path.exists(res_path):
             df = pd.read_csv(res_path)
             
-            # Metric Row
-            st.subheader("Executive Summary")
+            # Metric Card Display
+            st.markdown("<h3 style='font-weight: 400; color: #6c757d;'>EXECUTIVE SUMMARY</h3>", unsafe_allow_html=True)
             cols = st.columns(len(df))
             
             for i, (_, row) in enumerate(df.iterrows()):
                 with cols[i]:
                     risk = str(row['risk_level']).strip().upper()
-                    # Assigning Icon and color based on logic
-                    if "HIGH" in risk: color, icon = "#FF4B4B", "🔴"
-                    elif "MEDIUM" in risk: color, icon = "#FFA500", "🟠"
-                    else: color, icon = "#00FF00", "🟢"
+                    if "HIGH" in risk: color = "#FF4B4B"
+                    elif "MEDIUM" in risk: color = "#FFA500"
+                    else: color = "#00FF00"
                     
-                    # Classic HTML Card
                     st.markdown(f"""
                         <div class="metric-card">
-                            <p style="color: #888; margin-bottom: 5px; font-size: 0.9em;">SPRINT {row['sprint']}</p>
-                            <h2 style="color: {color}; margin: 0;">{icon} {risk}</h2>
+                            <div class="card-label">Sprint {row['sprint']}</div>
+                            <h2 style="color: {color}; font-weight: 800; letter-spacing: 1px; margin: 0;">{risk}</h2>
                         </div>
                     """, unsafe_allow_html=True)
             
-            st.markdown("---")
+            st.markdown("<br><br>", unsafe_allow_html=True)
             
-            # Analytics Row
+            # Analytics Section
             c1, c2 = st.columns([2, 1])
             with c1:
-                st.subheader("Risk Distribution Trend")
+                st.markdown("<h3 style='font-weight: 400; color: #6c757d;'>RISK TRAJECTORY</h3>", unsafe_allow_html=True)
                 st.line_chart(df[['ambiguity_score', 'overload_score']])
             with c2:
-                st.subheader("AI Decision Logic")
+                st.markdown("<h3 style='font-weight: 400; color: #6c757d;'>AI REASONING</h3>", unsafe_allow_html=True)
                 for _, row in df.iterrows():
-                    with st.expander(f"Analysis: Sprint {row['sprint']}"):
-                        st.write(f"**Linguistic Risk:** {row['ambiguity_score']:.2f}")
-                        st.write(f"**Capacity Risk:** {row['overload_score']:.2f}")
-                        st.progress(row['overload_score'])
+                    with st.expander(f"Sprint {row['sprint']} Insights"):
+                        st.write(f"**Linguistic Ambiguity:** {row['ambiguity_score']:.2f}")
+                        st.write(f"**Resource Load:** {row['overload_score']:.2f}")
+                        st.progress(min(row['overload_score'], 1.0))
         
     except Exception as e:
-        st.error(f"Analysis Interrupted: {e}")
+        st.error(f"Analysis Error: {e}")
 else:
-    st.info("👋 Welcome. Please upload your project data in the sidebar to generate the risk dashboard.")
+    st.markdown("""
+        <div style='text-align: center; padding: 100px; color: #444;'>
+            <h2 style='font-weight: 300;'>Engine Standby</h2>
+            <p>Awaiting data upload from the Control Panel to initialize analysis.</p>
+        </div>
+    """, unsafe_allow_html=True)
