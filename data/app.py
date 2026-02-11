@@ -67,7 +67,7 @@ if requirements_file and sprint_file:
 
         st.success("Analysis Complete ✅")
 # Create a download button for the results
-with open("results/ambiguity_report.csv", "rb") as file:
+with open("../results/ambiguity_report.csv", "rb") as file:
     st.download_button(
         label="📥 Download Risk Analysis Report",
         data=file,
