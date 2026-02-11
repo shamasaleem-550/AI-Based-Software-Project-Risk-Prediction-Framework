@@ -29,12 +29,10 @@ try:
 except ImportError:
     st.error("Engine failure: Core modules (src/) not found.")
 
-# --- 2. THE "SMART MAPPER" (This makes it run any file) ---
+# --- 2. THE SMART MAPPER ---
 def smart_map_columns(df):
     mapping = {}
-    cols = df.columns.str.lower()
-    
-    # Logic to find the right columns regardless of name
+    cols = df.columns.str.lower().str.strip()
     for i, col in enumerate(cols):
         if any(x in col for x in ['sprint', 'id', 'no', 'period']):
             mapping['sprint'] = df.columns[i]
@@ -42,15 +40,27 @@ def smart_map_columns(df):
             mapping['hours_assigned'] = df.columns[i]
         elif any(x in col for x in ['capacity', 'limit', 'max', 'total']):
             mapping['team_capacity'] = df.columns[i]
-            
     return mapping
 
-# --- 3. UI THEME ---
+# --- 3. UI THEME (Restoring the Pulse) ---
 st.set_page_config(page_title="SentianRisk Pro", layout="wide")
 st.markdown("""
     <style>
     @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;800&display=swap');
     .stApp { background-color: #080a0c; font-family: 'Plus Jakarta Sans', sans-serif; color: white; }
+    
+    /* The Pulse Animation */
+    .status-ring {
+        width: 80px; height: 80px; border-radius: 50%;
+        border: 2px solid #00d9ff; margin: 0 auto 30px;
+        animation: pulse 2s infinite;
+    }
+    @keyframes pulse {
+        0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(0, 217, 255, 0.7); }
+        70% { transform: scale(1); box-shadow: 0 0 0 15px rgba(0, 217, 255, 0); }
+        100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(0, 217, 255, 0); }
+    }
+
     .kpi-box { background: linear-gradient(145deg, #111418, #181c22); border: 1px solid rgba(255,255,255,0.03); border-radius: 15px; padding: 20px; text-align: center; }
     .diag-card { background: #111418; border: 1px solid rgba(255,255,255,0.05); border-radius: 12px; padding: 20px; margin-bottom: 15px; }
     .footer { text-align: center; color: #444; font-size: 0.75rem; padding: 30px 0; border-top: 1px solid rgba(255,255,255,0.03); margin-top: 50px; }
@@ -58,13 +68,24 @@ st.markdown("""
     """, unsafe_allow_html=True)
 
 # --- 4. BRANDING ---
-st.markdown("<h1 style='font-weight:300;'>SENTIAN<span style='color:#00d9ff; font-weight:800;'>RISK</span></h1>", unsafe_allow_html=True)
+st.markdown("""
+    <div style="display: flex; justify-content: space-between; align-items: center; padding: 20px 0; border-bottom: 1px solid rgba(255,255,255,0.05); margin-bottom: 40px;">
+        <div>
+            <h1 style='margin:0; font-weight:300;'>SENTIAN<span style='color:#00d9ff; font-weight:800;'>RISK</span></h1>
+            <p style='color:#555; margin:0; font-size:0.8rem;'>HYBRID GOVERNANCE ENGINE</p>
+        </div>
+        <div style="text-align:right;">
+            <p style='color:#00d9ff; margin:0; font-size:0.7rem; font-weight:800;'>V3.0 ACTIVE</p>
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
 
 # --- 5. SIDEBAR ---
 with st.sidebar:
     st.markdown("### Control Panel")
-    req_file = st.file_uploader("Upload Requirements (.txt)", type=["txt"])
-    spr_file = st.file_uploader("Upload Sprint Data (.csv)", type=["csv"])
+    req_file = st.file_uploader("Requirement Specs (.txt)", type=["txt"])
+    spr_file = st.file_uploader("Sprint Metadata (.csv)", type=["csv"])
+    st.markdown("---")
     execute = st.button("✨ EXECUTE ANALYSIS", type="primary", use_container_width=True)
 
 # --- 6. MAIN LOGIC ---
@@ -73,37 +94,43 @@ if execute and req_file and spr_file:
         raw_df = pd.read_csv(spr_file)
         col_map = smart_map_columns(raw_df)
         
-        # Check if we found enough data to proceed
         if len(col_map) < 3:
-            st.warning("⚠️ Column Mapping partial. Ensure CSV has Sprint, Hours, and Capacity data.")
-        
-        # Rename columns internally so the AI engine understands
-        clean_df = raw_df.rename(columns={v: k for k, v in col_map.items()})
-        
-        # Standard Processing
-        os.makedirs(os.path.join(root_path, "data"), exist_ok=True)
-        clean_df.to_csv(os.path.join(root_path, "data", "sprint_tasks.csv"), index=False)
-        
-        r_text = req_file.getvalue().decode("utf-8")
-        with open(os.path.join(root_path, "data", "requirements.txt"), "w") as f: f.write(r_text)
+            st.error("❌ Data mapping failed. Please ensure CSV has Sprint, Hours, and Capacity columns.")
+        else:
+            clean_df = raw_df.rename(columns={v: k for k, v in col_map.items()})
+            
+            # Save files
+            os.makedirs(os.path.join(root_path, "data"), exist_ok=True)
+            clean_df.to_csv(os.path.join(root_path, "data", "sprint_tasks.csv"), index=False)
+            r_text = req_file.getvalue().decode("utf-8")
+            with open(os.path.join(root_path, "data", "requirements.txt"), "w") as f: f.write(r_text)
 
-        with st.spinner("Analyzing..."):
-            create_combined_dataset()
-            train_hybrid_model()
-            df = pd.read_csv(os.path.join(root_path, "results", "combined_risk_data.csv"))
-            sentiment = TextBlob(r_text).sentiment.polarity
+            with st.spinner("Processing Risk Vectors..."):
+                create_combined_dataset()
+                train_hybrid_model()
+                df = pd.read_csv(os.path.join(root_path, "results", "combined_risk_data.csv"))
+                sentiment = TextBlob(r_text).sentiment.polarity
 
-        # Display KPIs
-        k1, k2, k3 = st.columns(3)
-        with k1: st.markdown(f"<div class='kpi-box'><p>MOOD</p><h2>{('STABLE' if sentiment > 0 else 'VAGUE')}</h2></div>", unsafe_allow_html=True)
-        with k2: st.markdown(f"<div class='kpi-box'><p>RISK INDEX</p><h2>{df['overload_score'].mean():.2f}</h2></div>", unsafe_allow_html=True)
-        with k3: st.markdown(f"<div class='kpi-box'><p>CONFIDENCE</p><h2>94%</h2></div>", unsafe_allow_html=True)
+            # KPIs
+            k1, k2, k3, k4 = st.columns(4)
+            with k1: st.markdown(f"<div class='kpi-box'><p style='color:#555; font-size:0.7rem;'>MOOD</p><h2 style='color:#00d9ff;'>{('STABLE' if sentiment > 0 else 'VAGUE')}</h2></div>", unsafe_allow_html=True)
+            with k2: st.markdown(f"<div class='kpi-box'><p style='color:#555; font-size:0.7rem;'>RISK INDEX</p><h2>{df['overload_score'].mean():.2f}</h2></div>", unsafe_allow_html=True)
+            with k3: st.markdown(f"<div class='kpi-box'><p style='color:#555; font-size:0.7rem;'>SPRINTS</p><h2 style='color:#00ff9d;'>{len(df)}</h2></div>", unsafe_allow_html=True)
+            with k4: st.markdown(f"<div class='kpi-box'><p style='color:#555; font-size:0.7rem;'>CONFIDENCE</p><h2>94%</h2></div>", unsafe_allow_html=True)
 
-        st.line_chart(df.set_index('sprint')[['overload_score']])
+            st.markdown("<br>", unsafe_allow_html=True)
+            st.line_chart(df.set_index('sprint')[['overload_score', 'ambiguity_score']])
 
     except Exception as e:
-        st.error("The system encountered a data format it couldn't solve. Please use standard headers.")
+        st.error("System encountered an error processing the data. Please check file formats.")
 else:
-    st.info("Awaiting file upload...")
+    # --- RE-ADDING THE PULSE ---
+    st.markdown("""
+        <div style='text-align:center; padding-top:100px;'>
+            <div class="status-ring"></div>
+            <h2 style='color:white; font-weight:200; letter-spacing:4px;'>SYSTEM STANDBY</h2>
+            <p style='color:#444; font-size:0.8rem; margin-top:10px;'>WAITING FOR DATA INGESTION</p>
+        </div>
+    """, unsafe_allow_html=True)
 
 st.markdown(f"<div class='footer'>SENTIANRISK ARCHITECTURE &copy; 2026 BY SHAMA SALEEM</div>", unsafe_allow_html=True)
