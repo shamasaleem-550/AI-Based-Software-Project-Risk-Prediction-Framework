@@ -66,3 +66,11 @@ if requirements_file and sprint_file:
         st.bar_chart(combined[['ambiguity_score', 'overload_score']])
 
         st.success("Analysis Complete ✅")
+# Create a download button for the results
+with open("results/ambiguity_report.csv", "rb") as file:
+    st.download_button(
+        label="📥 Download Risk Analysis Report",
+        data=file,
+        file_name="risk_analysis_report.csv",
+        mime="text/csv"
+    )
