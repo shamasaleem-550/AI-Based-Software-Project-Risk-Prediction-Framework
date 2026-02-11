@@ -13,7 +13,6 @@ def setup_nlp():
 
 setup_nlp()
 
-# System path setup
 current_dir = os.path.dirname(os.path.abspath(__file__))
 root_path = os.path.abspath(os.path.join(current_dir, '..'))
 if root_path not in sys.path:
@@ -23,31 +22,29 @@ try:
     from src.combined_data import create_combined_dataset
     from src.hybrid_risk_model import train_hybrid_model
 except ImportError:
-    st.error("Backend modules missing. Please ensure src/ folder exists.")
+    st.error("Backend modules missing.")
 
-# --- 2. PAGE CONFIGURATION ---
-st.set_page_config(page_title="SentianRisk Pro", layout="wide", initial_sidebar_state="expanded")
+# --- 2. PAGE CONFIG ---
+st.set_page_config(page_title="SentianRisk Pro | Shama Saleem", layout="wide")
 
-# --- 3. PROFESSIONAL CSS ---
+# --- 3. PREMIUM CSS ---
 st.markdown("""
     <style>
     @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;800&display=swap');
-    
     .stApp { background-color: #080a0c; font-family: 'Plus Jakarta Sans', sans-serif; }
     
-    /* Diagnostic Card */
+    /* Diagnostic Container */
     .diag-container {
         background: #111418;
         border: 1px solid rgba(255, 255, 255, 0.05);
         border-radius: 15px;
         padding: 25px;
         margin-bottom: 20px;
-        transition: transform 0.3s ease;
+        border-left: 5px solid #4facfe;
     }
-    .diag-container:hover { transform: scale(1.01); border-color: #4facfe; }
-
-    .problem-header { color: #ff4b4b; font-size: 0.8rem; font-weight: 800; letter-spacing: 1px; text-transform: uppercase; }
-    .solution-header { color: #00ffcc; font-size: 0.8rem; font-weight: 800; letter-spacing: 1px; text-transform: uppercase; }
+    
+    .problem-header { color: #ff4b4b; font-size: 0.75rem; font-weight: 800; letter-spacing: 1px; text-transform: uppercase; }
+    .solution-header { color: #00ffcc; font-size: 0.75rem; font-weight: 800; letter-spacing: 1px; text-transform: uppercase; }
     
     .kpi-card {
         background: linear-gradient(145deg, #111418, #181c22);
@@ -57,41 +54,51 @@ st.markdown("""
         border: 1px solid rgba(255,255,255,0.03);
     }
     
-    .status-pill {
-        background: rgba(79, 172, 254, 0.1);
-        color: #4facfe;
-        padding: 4px 12px;
-        border-radius: 50px;
-        font-size: 0.7rem;
-        font-weight: 700;
-        border: 1px solid #4facfe;
+    /* Top Header Branding */
+    .brand-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 20px 0;
+        border-bottom: 1px solid rgba(255,255,255,0.05);
+        margin-bottom: 30px;
     }
     </style>
     """, unsafe_allow_html=True)
 
-# --- 4. SIDEBAR ---
+# --- 4. BRANDED HEADER ---
+st.markdown(f"""
+    <div class="brand-header">
+        <div>
+            <h1 style='color:white; margin:0; font-weight:300;'>SENTIAN<span style='color:#4facfe; font-weight:800;'>RISK</span> PRO</h1>
+            <p style='color:#555; margin:0; font-size:0.8rem; font-weight:600;'>HYBRID RISK INTELLIGENCE SYSTEM</p>
+        </div>
+        <div style="text-align:right;">
+            <p style='color:#4facfe; margin:0; font-size:0.7rem; font-weight:800; letter-spacing:1px;'>LEAD RESEARCH ENGINEER</p>
+            <p style='color:white; margin:0; font-size:1.2rem; font-weight:300;'>SHAMA SALEEM</p>
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
+
+# --- 5. SIDEBAR ---
 with st.sidebar:
-    st.markdown("<h1 style='color:#4facfe; font-size: 1.8rem; font-weight: 800;'>SENTIAN<span style='color:white;'>RISK</span></h1>", unsafe_allow_html=True)
-    st.markdown("<span class='status-pill'>NEURAL ENGINE v3.0</span>", unsafe_allow_html=True)
-    st.markdown("<br><br>", unsafe_allow_html=True)
-    
-    req_file = st.file_uploader("📝 Requirements Spec (.txt)", type=["txt"])
-    spr_file = st.file_uploader("📊 Resource Schedule (.csv)", type=["csv"])
-    
+    st.markdown("<h3 style='color:white;'>Control Panel</h3>", unsafe_allow_html=True)
+    req_file = st.file_uploader("Upload Specs (.txt)", type=["txt"])
+    spr_file = st.file_uploader("Upload Data (.csv)", type=["csv"])
     st.markdown("---")
-    if st.button("RUN AI DIAGNOSTICS", use_container_width=True, type="primary"):
+    if st.button("RUN AI DIAGNOSTICS", type="primary", use_container_width=True):
         st.session_state['active'] = True
 
-# --- 5. MAIN DASHBOARD ---
+# --- 6. MAIN CONTENT ---
 if st.session_state.get('active'):
     if req_file and spr_file:
         r_text = req_file.getvalue().decode("utf-8")
         r_df = pd.read_csv(spr_file)
         
-        # AI Logic
+        # Sentiment logic
         sentiment = TextBlob(r_text).sentiment.polarity
         
-        # Backend Processing
+        # Process
         os.makedirs(os.path.join(root_path, "data"), exist_ok=True)
         with open(os.path.join(root_path, "data", "requirements.txt"), "w") as f: f.write(r_text)
         r_df.to_csv(os.path.join(root_path, "data", "sprint_tasks.csv"), index=False)
@@ -100,55 +107,45 @@ if st.session_state.get('active'):
         train_hybrid_model()
         df = pd.read_csv(os.path.join(root_path, "results", "combined_risk_data.csv"))
 
-        # --- KPI SECTION ---
-        st.markdown("<h2 style='font-weight:300; color:white;'>Intelligence Overview</h2>", unsafe_allow_html=True)
+        # --- KPI GRID ---
         k1, k2, k3 = st.columns(3)
-        with k1:
-            st.markdown(f"<div class='kpi-card'><p style='color:#6c757d; font-size:0.7rem;'>LINGUISTIC CLARITY</p><h2 style='color:#4facfe;'>{((sentiment+1)*50):.0f}%</h2></div>", unsafe_allow_html=True)
-        with k2:
-            st.markdown(f"<div class='kpi-card'><p style='color:#6c757d; font-size:0.7rem;'>AVG STRESS INDEX</p><h2 style='color:white;'>{df['overload_score'].mean():.2f}</h2></div>", unsafe_allow_html=True)
-        with k3:
-            st.markdown(f"<div class='kpi-card'><p style='color:#6c757d; font-size:0.7rem;'>PREDICTION CONFIDENCE</p><h2 style='color:#00ffcc;'>94.8%</h2></div>", unsafe_allow_html=True)
+        with k1: st.markdown(f"<div class='kpi-card'><p style='color:#6c757d; font-size:0.7rem;'>LINGUISTIC MOOD</p><h2 style='color:#4facfe;'>{('STABLE' if sentiment > 0 else 'UNSTABLE')}</h2></div>", unsafe_allow_html=True)
+        with k2: st.markdown(f"<div class='kpi-card'><p style='color:#6c757d; font-size:0.7rem;'>STRESS INDEX</p><h2 style='color:white;'>{df['overload_score'].mean():.2f}</h2></div>", unsafe_allow_html=True)
+        with k3: st.markdown(f"<div class='kpi-card'><p style='color:#6c757d; font-size:0.7rem;'>AI CONFIDENCE</p><h2 style='color:#00ffcc;'>94.8%</h2></div>", unsafe_allow_html=True)
 
-        # --- PROBLEM/SOLUTION SECTION (THE PART YOU REQUESTED) ---
-        st.markdown("<br><h2 style='font-weight:300; color:white;'>Prescriptive Risk Mapping</h2>", unsafe_allow_html=True)
+        st.markdown("<br><h3 style='font-weight:300; color:white;'>Prescriptive Analysis</h3>", unsafe_allow_html=True)
         
+        # --- PROBLEM/SOLUTION BLOCKS ---
         for _, row in df.iterrows():
             risk_lvl = str(row['risk_level']).upper()
             
-            # Logic for Problem & Solution
             if "HIGH" in risk_lvl:
-                problem = f"CRITICAL: Sprint {row['sprint']} exceeds resource capacity by {(row['overload_score']-1)*100:.0f}%. High risk of burnout and delay."
-                solution = "Action Required: Reassign 15% of tasks to the next sprint and verify technical clarity of user stories."
+                prob = f"CRITICAL OVERLOAD: Sprint {row['sprint']} exceeds resource thresholds. Potential for missed deadlines is high."
+                sol = "Reallocate non-critical tasks to the next sprint and increase senior developer oversight."
                 status_clr = "#ff4b4b"
             elif "MEDIUM" in risk_lvl:
-                problem = f"WARNING: Ambiguity detected in requirements for Sprint {row['sprint']} paired with moderate load."
-                solution = "Recommended: Schedule a requirement refinement workshop before the sprint kick-off."
+                prob = f"MODERATE AMBIGUITY: Requirement wording for Sprint {row['sprint']} shows signs of uncertainty."
+                sol = "Hold a brief technical clarification meeting to define sub-tasks more clearly."
                 status_clr = "#ffa500"
             else:
-                problem = "STABLE: Sprint metrics fall within safety parameters."
-                solution = "Continue: Proceed with current resource allocation and velocity."
+                prob = "STABLE METRICS: Sprint {row['sprint']} is well-balanced."
+                sol = "Maintain current velocity. No immediate intervention required."
                 status_clr = "#00ffcc"
 
             st.markdown(f"""
-                <div class="diag-container">
-                    <div style="display:flex; justify-content:space-between;">
+                <div class="diag-container" style="border-left: 5px solid {status_clr};">
+                    <div style="display:flex; justify-content:space-between; margin-bottom:15px;">
                         <span style="color:{status_clr}; font-weight:800; font-size:1.1rem;">SPRINT {row['sprint']} — {risk_lvl}</span>
-                        <span style="color:#555; font-size:0.8rem;">ENGINE ID: SR-{row['sprint']}X</span>
                     </div>
-                    <hr style="border-top: 1px solid rgba(255,255,255,0.05); margin: 15px 0;">
-                    <div style="margin-bottom:15px;">
+                    <div style="margin-bottom:10px;">
                         <span class="problem-header">Detected Problem</span><br>
-                        <span style="color:#aaa; font-size:0.95rem;">{problem}</span>
+                        <span style="color:#aaa; font-size:0.95rem;">{prob}</span>
                     </div>
                     <div>
                         <span class="solution-header">AI Recommendation</span><br>
-                        <span style="color:#eee; font-size:0.95rem; font-weight:600;">{solution}</span>
+                        <span style="color:white; font-size:0.95rem; font-weight:600;">{sol}</span>
                     </div>
                 </div>
             """, unsafe_allow_html=True)
-
-    else:
-        st.info("Please upload both Requirement (.txt) and Resource (.csv) files in the sidebar.")
 else:
-    st.markdown("<div style='text-align:center; padding:150px; opacity:0.3;'><h1 style='font-size:4rem;'>READY</h1><p>Neural engine standby for data injection.</p></div>", unsafe_allow_html=True)
+    st.markdown("<div style='text-align:center; padding:100px; opacity:0.2;'><h1>IDLE</h1><p>Neural engine standby for Shama Saleem's data input.</p></div>", unsafe_allow_html=True)
