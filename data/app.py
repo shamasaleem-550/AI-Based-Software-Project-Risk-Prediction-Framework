@@ -15,12 +15,12 @@ try:
     from src.combined_data import create_combined_dataset
     from src.hybrid_risk_model import train_hybrid_model
 except ImportError as e:
-    st.error(f"Module import failed. Please check folder structure. Error: {e}")
+    st.error(f"Module import failed. Check structure. Error: {e}")
 
 # --- 3. PAGE CONFIGURATION ---
-st.set_page_config(page_title="AI Project Risk Predictor", layout="wide")
+st.set_page_config(page_title="SentianRisk AI", layout="wide", page_icon="🛡️")
 
-# Professional UI Styling
+# UI Styling for Professional Dark Mode Cards
 st.markdown("""
     <style>
     .stMetric { 
@@ -37,63 +37,67 @@ st.markdown("""
     }
     [data-testid="stMetricLabel"] {
         color: #AAAAAA !important;
+        font-weight: bold;
     }
+    .main { background-color: #0E1117; }
     </style>
     """, unsafe_allow_html=True)
 
-st.title("🚀 AI-Based Software Project Risk Predictor")
-st.markdown(f"**Developed by SHAMA SALEEM** | Framework for NLP & Resource Risk Analysis")
+# THE NEW PROFESSIONAL TITLE
+st.title("🛡️ SentianRisk AI: Intelligent Project Oversight")
+st.markdown(f"**Developed by SHAMA SALEEM** | Hybrid NLP & Resource Analytics Framework")
 
-# --- 4. SIDEBAR - FILE UPLOADS & TEMPLATES ---
+# --- 4. SIDEBAR ---
 with st.sidebar:
     st.header("📁 Data Input")
-    requirements_file = st.file_uploader("1. Upload Requirements (.txt)", type=["txt"])
-    sprint_file = st.file_uploader("2. Upload Sprint Tasks (.csv)", type=["csv"])
+    st.write("Upload project files for AI processing.")
+    
+    requirements_file = st.file_uploader("1. Requirements (.txt)", type=["txt"])
+    sprint_file = st.file_uploader("2. Sprint Tasks (.csv)", type=["csv"])
     
     st.markdown("---")
-    st.subheader("💡 Don't have files?")
-    st.caption("Use these templates to test the AI logic:")
+    st.subheader("💡 Demo Templates")
     
-    sample_req = "The system must be fast and robust. We need flexible modules."
-    st.download_button("📥 Sample Requirements (.txt)", sample_req, "sample_req.txt")
+    # Requirements Sample
+    sample_req = "The system must be fast. We require robust security and flexible login."
+    st.download_button("📥 Download Sample .txt", sample_req, "sample_req.txt")
 
-    sample_csv = "sprint,task_name,hours_assigned,developer_capacity\n1,Backend,45,40\n2,Frontend,20,40\n3,API,55,40"
-    st.download_button("📥 Sample Sprint Data (.csv)", sample_csv, "sample_sprint.csv")
+    # Sprint Sample
+    sample_csv = "sprint,task_name,hours_assigned,developer_capacity\n1,Module A,45,40\n2,Module B,22,40\n3,Module C,58,40"
+    st.download_button("📥 Download Sample .csv", sample_csv, "sample_sprint.csv")
     
     st.markdown("---")
-    st.info("Analysis detects ambiguity in text and workload overload.")
+    st.caption("AI detects ambiguity in text and capacity overloads.")
 
 # --- 5. MAIN LOGIC ---
 if requirements_file and sprint_file:
-    if st.button("🔍 Run Full AI Risk Analysis", use_container_width=True):
+    if st.button("🔍 Run Intelligent Risk Analysis", use_container_width=True):
         try:
-            # Ensure directories exist
             os.makedirs(os.path.join(root_path, "data"), exist_ok=True)
             os.makedirs(os.path.join(root_path, "results"), exist_ok=True)
 
-            # Save uploaded files
+            # Save inputs
             with open(os.path.join(root_path, "data", "requirements.txt"), "wb") as f:
                 f.write(requirements_file.getvalue())
             with open(os.path.join(root_path, "data", "sprint_tasks.csv"), "wb") as f:
                 f.write(sprint_file.getvalue())
 
-            # Execute AI Scripts
-            with st.spinner("🧠 AI Engines Analyzing Data..."):
+            # Run Backend
+            with st.spinner("🧠 Processing Linguistic and Resource Metrics..."):
                 create_combined_dataset()
                 train_hybrid_model()
 
-            # Display Results
+            # Result Display
             res_path = os.path.join(root_path, "results", "combined_risk_data.csv")
             if os.path.exists(res_path):
                 df = pd.read_csv(res_path)
-                
                 st.subheader("📊 Sprint Risk Dashboard")
                 cols = st.columns(len(df))
                 
                 for i, (_, row) in enumerate(df.iterrows()):
                     with cols[i]:
                         risk = str(row['risk_level']).strip().upper()
-                        # Color logic
+                        # Dynamic Color Icons
                         if "HIGH" in risk:
                             icon = "🔴"
                         elif "MEDIUM" in risk:
@@ -103,22 +107,14 @@ if requirements_file and sprint_file:
                         st.metric(label=f"Sprint {row['sprint']}", value=f"{icon} {risk}")
 
                 st.markdown("---")
-                st.subheader("📈 Risk Trend Analysis")
-                # Labeled Chart
-                chart_data = df[['ambiguity_score', 'overload_score']]
-                st.line_chart(chart_data)
-                st.caption("Legend: Dark Blue = Ambiguity Score | Light Blue = Overload Score")
-
-                # Downloadable Report
-                st.markdown("---")
-                report_path = os.path.join(root_path, "results", "ambiguity_report.csv")
-                if os.path.exists(report_path):
-                    with open(report_path, "rb") as f:
-                        st.download_button("📥 Download Technical Risk Report", f, "risk_report.csv", "text/csv")
+                st.subheader("📈 Technical Risk Trends")
+                # Visualizing the hybrid scores
+                st.line_chart(df[['ambiguity_score', 'overload_score']])
+                st.info("💡 Ambiguity (Blue) vs Resource Overload (Light Blue)")
             else:
-                st.error("Analysis completed but result file not found.")
+                st.error("Error: Result file not generated.")
 
         except Exception as e:
-            st.error(f"Error during analysis: {e}")
+            st.error(f"Critical Error: {e}")
 else:
-    st.warning("👈 Please upload both Requirements and Sprint files in the sidebar.")
+    st.warning("👈 Please upload project data in the sidebar to begin analysis.")
