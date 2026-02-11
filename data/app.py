@@ -3,77 +3,55 @@ import os
 import pandas as pd
 import streamlit as st
 
-# Add the parent directory to the path so it can find the 'src' folder
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+# 1. Path Setup: Add parent directory so 'src' can be found
+current_dir = os.path.dirname(os.path.abspath(__file__))
+parent_dir = os.path.dirname(current_dir)
+sys.path.append(parent_dir)
 
-# Import your backend logic
-from src.combined_data import create_combined_dataset
-from src.hybrid_risk_model import train_hybrid_model
+# 2. Backend Imports
+try:
+    from src.combined_data import create_combined_dataset
+    from src.hybrid_risk_model import train_hybrid_model
+except ImportError as e:
+    st.error(f"Failed to import backend modules: {e}")
 
-st.set_page_config(
-    page_title="AI Software Project Risk Predictor",
-    layout="centered",
-    initial_sidebar_state="collapsed"
-)
-
+st.set_page_config(page_title="AI Risk Predictor", layout="centered")
 st.title("🚀 AI-Based Software Project Risk Predictor")
 
-st.write("""
-Upload your project requirement file and sprint task CSV
-to analyze software project risk using AI.
-""")
-
-# Upload Section
-st.subheader("📂 Upload Project Files")
-
-requirements_file = st.file_uploader("Upload Requirements File (.txt)", type=["txt"])
-sprint_file = st.file_uploader("Upload Sprint Task File (.csv)", type=["csv"])
+# 3. File Uploaders
+requirements_file = st.file_uploader("Upload Requirements (.txt)", type=["txt"])
+sprint_file = st.file_uploader("Upload Sprint Tasks (.csv)", type=["csv"])
 
 if requirements_file and sprint_file:
-    st.success("Files uploaded successfully!")
-
     if st.button("🔍 Analyze Project Risk"):
-        # Ensure data and results folders exist relative to the root
-        os.makedirs("../data", exist_ok=True)
-        os.makedirs("../results", exist_ok=True)
-
-        # Save uploaded files
-        with open("../data/requirements.txt", "w") as f:
-            f.write(requirements_file.getvalue().decode("utf-8"))
-
-        sprint_df = pd.read_csv(sprint_file)
-        sprint_df.to_csv("../data/sprint_tasks.csv", index=False)
-
-        st.info("Running AI analysis...")
-
-        # Run backend modules
         try:
-            create_combined_dataset()
-            model = train_hybrid_model()
+            # Ensure folders exist relative to project root
+            os.makedirs(os.path.join(parent_dir, "data"), exist_ok=True)
+            os.makedirs(os.path.join(parent_dir, "results"), exist_ok=True)
 
-            # Load results
-            combined = pd.read_csv("../results/combined_risk_data.csv")
+            # Save files to project root
+            with open(os.path.join(parent_dir, "data/requirements.txt"), "w") as f:
+                f.write(requirements_file.getvalue().decode("utf-8"))
+            
+            pd.read_csv(sprint_file).to_csv(os.path.join(parent_dir, "data/sprint_tasks.csv"), index=False)
+
+            st.info("AI is analyzing...")
+            create_combined_dataset()
+            train_hybrid_model()
+
+            # Load Results
+            res_path = os.path.join(parent_dir, "results/combined_risk_data.csv")
+            combined = pd.read_csv(res_path)
 
             st.subheader("📊 Risk Analysis Results")
-
-            for _, row in combined.iterrows():
-                st.metric(
-                    label=f"Sprint {row['sprint']} Risk Level",
-                    value=row['risk_level']
-                )
-                st.write(f"Ambiguity Score: {row['ambiguity_score']}")
-                st.write(f"Overload Score: {row['overload_score']}")
-
             st.bar_chart(combined[['ambiguity_score', 'overload_score']])
             st.success("Analysis Complete ✅")
 
-            # Create a download button specifically for the results generated
-            with open("../results/ambiguity_report.csv", "rb") as file:
-                st.download_button(
-                    label="📥 Download Risk Analysis Report",
-                    data=file,
-                    file_name="risk_analysis_report.csv",
-                    mime="text/csv"
-                )
+            # Download Button Logic
+            report_path = os.path.join(parent_dir, "results/ambiguity_report.csv")
+            if os.path.exists(report_path):
+                with open(report_path, "rb") as f:
+                    st.download_button("📥 Download Report", f, "risk_report.csv", "text/csv")
+
         except Exception as e:
-            st.error(f"An error occurred during analysis: {e}")
+            st.error(f"Analysis failed: {e}")
