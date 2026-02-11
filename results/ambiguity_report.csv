@@ -1,0 +1,7 @@
+requirement,vague_ratio,avg_sentence_length,passive_voice_score,missing_criteria,ambiguity_score
+The system should be fast and user-friendly.,0.125,8.0,0.0,1,0.2
+The application must allow users to upload files easily.,0.0,9.0,0.0,0,0.05
+Reports should be generated efficiently.,0.0,5.0,1.0,1,0.33
+The dashboard shall display project metrics.,0.0,6.0,0.0,0,0.04
+The login feature must be secure.,0.0,6.0,0.0,0,0.04
+The system shall handle at least 1000 concurrent users.,0.0,8.0,0.0,0,0.05

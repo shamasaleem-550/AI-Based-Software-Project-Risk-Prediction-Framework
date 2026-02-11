@@ -1,0 +1,4 @@
+sprint,carry_over_rate,max_tasks_per_dev,hours_ratio,overload_score
+1,0.33,2,1.12,0.53
+2,0.33,2,1.18,0.55
+3,0.0,1,1.09,0.36
