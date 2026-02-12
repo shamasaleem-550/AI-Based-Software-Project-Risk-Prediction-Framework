@@ -1,4 +1,3 @@
-
 import sys
 import os
 import pandas as pd
@@ -26,65 +25,99 @@ try:
     from src.combined_data import create_combined_dataset
     from src.hybrid_risk_model import train_hybrid_model
 except ImportError:
-    st.error("Engine failure: Core modules (src/) not found.")
+    st.error("System Error: Core architectural modules not found.")
 
-# --- 2. UI THEME & PROFESSIONAL BUTTONS ---
-st.set_page_config(page_title="SentianRisk Pro", layout="wide")
+# --- 2. CLASSIC BUSINESS UI THEME WITH HOVER EFFECTS ---
+st.set_page_config(page_title="SentianRisk | Governance", layout="wide")
 st.markdown("""
     <style>
-    @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;800&display=swap');
-    .stApp { background-color: #080a0c; font-family: 'Plus Jakarta Sans', sans-serif; color: white; }
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap');
     
-    /* Neural Pulse */
-    .status-ring { width: 80px; height: 80px; border-radius: 50%; border: 2px solid #00d9ff; margin: 0 auto 30px; animation: pulse 2s infinite; }
-    @keyframes pulse { 0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(0, 217, 255, 0.7); } 70% { transform: scale(1); box-shadow: 0 0 0 15px rgba(0, 217, 255, 0); } 100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(0, 217, 255, 0); } }
+    .stApp { background-color: #0c0e12; font-family: 'Inter', sans-serif; color: #e1e1e1; }
+    
+    /* Subtle Neural Pulse */
+    .status-ring { width: 60px; height: 60px; border-radius: 50%; border: 1px solid #00d9ff; margin: 0 auto 30px; animation: pulse 3s infinite; }
+    @keyframes pulse { 0% { opacity: 0.3; } 50% { opacity: 1; } 100% { opacity: 0.3; } }
 
-    /* KPI & Prescription Boxes */
-    .kpi-box { background: linear-gradient(145deg, #111418, #181c22); border: 1px solid rgba(255,255,255,0.05); border-radius: 15px; padding: 20px; text-align: center; }
-    .prescription-card { background: rgba(0, 217, 255, 0.05); border: 1px solid #00d9ff; border-radius: 12px; padding: 20px; margin-top: 20px; }
-    
-    /* Professional Button Styling */
-    div.stButton > button {
-        background: linear-gradient(90deg, #00d9ff, #005fcc); color: white; border: none;
-        padding: 12px 24px; border-radius: 8px; font-weight: 700; letter-spacing: 1px;
-        transition: all 0.3s ease; width: 100%;
+    /* Floating KPI Boxes */
+    .kpi-box { 
+        background-color: #161a21; 
+        border: 1px solid #2d343f; 
+        border-radius: 4px; 
+        padding: 24px; 
+        text-align: center; 
+        transition: all 0.3s ease; 
     }
-    div.stButton > button:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(0, 217, 255, 0.4); }
+    .kpi-box:hover { 
+        transform: translateY(-5px); 
+        border-color: #00d9ff; 
+        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.4); 
+    }
+
+    /* Floating Executive Summary */
+    .executive-summary { 
+        border-top: 2px solid #00d9ff; 
+        background-color: #161a21; 
+        padding: 25px; 
+        margin: 20px 0; 
+        border-radius: 0 0 4px 4px; 
+        transition: all 0.3s ease;
+    }
+    .executive-summary:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 5px 15px rgba(0, 217, 255, 0.05);
+    }
+    
+    /* Clean Sidebar & Buttons */
+    div.stButton > button {
+        background-color: transparent; color: #00d9ff; border: 1px solid #00d9ff;
+        padding: 10px 20px; border-radius: 2px; font-weight: 600; text-transform: uppercase;
+        letter-spacing: 2px; transition: 0.4s; width: 100%;
+    }
+    div.stButton > button:hover { background-color: #00d9ff; color: #0c0e12; }
+    
+    .footer { text-align: center; color: #444; font-size: 0.7rem; letter-spacing: 2px; padding: 40px 0; border-top: 1px solid #1c2128; margin-top: 60px; }
     </style>
     """, unsafe_allow_html=True)
 
-# --- 3. BRANDING HEADER ---
+# --- 3. CORPORATE BRANDING ---
 st.markdown("""
-    <div style="display: flex; justify-content: space-between; align-items: center; padding: 20px 0; border-bottom: 1px solid rgba(255,255,255,0.05); margin-bottom: 40px;">
-        <div><h1 style='margin:0; font-weight:300;'>SENTIAN<span style='color:#00d9ff; font-weight:800;'>RISK</span></h1><p style='color:#555; margin:0; font-size:0.8rem;'>HYBRID GOVERNANCE ENGINE</p></div>
-        <div style="text-align:right;"><p style='color:#00d9ff; margin:0; font-size:0.7rem; font-weight:800;'>SYSTEM STATUS: OPERATIONAL</p></div>
+    <div style="display: flex; justify-content: space-between; align-items: center; padding-bottom: 20px; border-bottom: 1px solid #1c2128; margin-bottom: 40px;">
+        <div><h2 style='margin:0; font-weight:700; color:#ffffff; letter-spacing:-1px;'>SENTIAN<span style='color:#00d9ff;'>RISK</span></h2><p style='color:#666; margin:0; font-size:0.75rem; text-transform:uppercase; letter-spacing:3px;'>Strategic Governance Platform</p></div>
+        <div style="text-align:right;"><p style='color:#00d9ff; margin:0; font-size:0.65rem; font-weight:700; letter-spacing:1px;'>AUDIT LOG: ACTIVE</p></div>
     </div>
     """, unsafe_allow_html=True)
 
 # --- 4. SIDEBAR ---
 with st.sidebar:
-    st.markdown("### Data Ingestion")
-    req_file = st.file_uploader("Project Specifications (.txt)", type=["txt"])
-    spr_file = st.file_uploader("Operational Metadata (.csv)", type=["csv"])
+    st.markdown("<p style='font-size:0.7rem; color:#666; text-transform:uppercase;'>Input Control</p>", unsafe_allow_html=True)
+    req_file = st.file_uploader("Documentation (.txt)", type=["txt"])
+    spr_file = st.file_uploader("Operational Data (.csv)", type=["csv"])
     st.markdown("---")
-    execute = st.button("RUN SYSTEM DIAGNOSTICS")
+    execute = st.button("Initialize Audit")
 
-# --- 5. MAIN LOGIC & POWER FEATURES ---
+# --- 5. GOVERNANCE LOGIC ---
 if execute and req_file and spr_file:
     try:
         raw_df = pd.read_csv(spr_file)
         r_text = req_file.getvalue().decode("utf-8")
         
-        # STRUCTURAL VALIDATION (THE GATEKEEPER)
+        # VALIDATION AUDIT (Professional Alert)
         csv_cols = "".join(raw_df.columns).lower()
         project_vectors = ['sprint', 'task', 'hour', 'capacity', 'effort', 'deadline']
         
         if not any(v in csv_cols for v in project_vectors):
-            st.warning("🚨 **SYSTEM AUDIT: STRUCTURAL MISMATCH**")
-            st.error("The uploaded files are **NOT related to Project Management**. The AI requires Sprint, Workload, and Capacity metrics to perform a risk induction.")
-            st.info("💡 **Prescription:** Please upload valid development metadata to synchronize the risk engine.")
+            st.markdown("""
+                <div style='border: 1px solid #ff4b4b; padding: 20px; border-radius: 4px; background-color: rgba(255, 75, 75, 0.05);'>
+                    <h5 style='color: #ff4b4b; margin:0; letter-spacing:1px;'>STRUCTURAL MISMATCH DETECTED</h5>
+                    <p style='color: #888; font-size: 0.85rem; margin-top:10px;'>
+                        Audit Incomplete: The ingested metadata does not contain Project Governance vectors. 
+                        Please align documentation with standard Sprint and Allocation schemas.
+                    </p>
+                </div>
+            """, unsafe_allow_html=True)
         else:
-            with st.spinner("Synchronizing Hybrid Risk Vectors..."):
+            with st.spinner("Synchronizing Risk Vectors..."):
                 os.makedirs(os.path.join(root_path, "data"), exist_ok=True)
                 raw_df.to_csv(os.path.join(root_path, "data", "sprint_tasks.csv"), index=False)
                 with open(os.path.join(root_path, "data", "requirements.txt"), "w") as f: f.write(r_text)
@@ -95,37 +128,33 @@ if execute and req_file and spr_file:
                 avg_risk = df['overload_score'].mean()
                 sentiment = TextBlob(r_text).sentiment.polarity
 
-            # KPI DASHBOARD
+            # KPI DASHBOARD (The Floating Boxes)
             k1, k2, k3, k4 = st.columns(4)
-            with k1: st.markdown(f"<div class='kpi-box'><p style='color:#555; font-size:0.7rem;'>SENTIMENT BIAS</p><h2 style='color:#00d9ff;'>{('STABLE' if sentiment > 0 else 'VOLATILE')}</h2></div>", unsafe_allow_html=True)
-            with k2: st.markdown(f"<div class='kpi-box'><p style='color:#555; font-size:0.7rem;'>RISK COEFFICIENT</p><h2>{avg_risk:.2f}</h2></div>", unsafe_allow_html=True)
-            with k3: st.markdown(f"<div class='kpi-box'><p style='color:#555; font-size:0.7rem;'>ITERATIONS</p><h2 style='color:#00ff9d;'>{len(df)}</h2></div>", unsafe_allow_html=True)
-            with k4: st.markdown(f"<div class='kpi-box'><p style='color:#555; font-size:0.7rem;'>MODEL FIDELITY</p><h2>94%</h2></div>", unsafe_allow_html=True)
+            with k1: st.markdown(f"<div class='kpi-box'><p style='color:#666; font-size:0.7rem; letter-spacing:1px;'>SENTIMENT BIAS</p><h3 style='color:#00d9ff; margin:0;'>{('STABLE' if sentiment > 0 else 'VOLATILE')}</h3></div>", unsafe_allow_html=True)
+            with k2: st.markdown(f"<div class='kpi-box'><p style='color:#666; font-size:0.7rem; letter-spacing:1px;'>RISK COEFFICIENT</p><h3 style='color:#fff; margin:0;'>{avg_risk:.2f}</h3></div>", unsafe_allow_html=True)
+            with k3: st.markdown(f"<div class='kpi-box'><p style='color:#666; font-size:0.7rem; letter-spacing:1px;'>ITERATIONS</p><h3 style='color:#fff; margin:0;'>{len(df)}</h3></div>", unsafe_allow_html=True)
+            with k4: st.markdown(f"<div class='kpi-box'><p style='color:#666; font-size:0.7rem; letter-spacing:1px;'>MODEL FIDELITY</p><h3 style='color:#fff; margin:0;'>94%</h3></div>", unsafe_allow_html=True)
 
-            # --- POWER FEATURE: AI RISK MANAGEMENT PLAN ---
-            st.markdown("### 🧠 AI Strategic Governance Plan")
+            # --- STRATEGIC BRIEF ---
+            st.markdown("<div class='executive-summary'>", unsafe_allow_html=True)
+            st.markdown("<h5 style='color:#ffffff; margin-bottom:15px; letter-spacing:1px;'>STRATEGIC MITIGATION BRIEF</h5>", unsafe_allow_html=True)
             
-            with st.container():
-                st.markdown(f"<div class='prescription-card'>", unsafe_allow_html=True)
-                if avg_risk > 0.6:
-                    st.markdown(f"#### 🔴 High Risk Detected: Resource Saturation")
-                    st.write(f"**Current State:** Your team is currently operating at **{int(avg_risk*100)}%** overload. This will lead to a 'Burnout Event' within the next 2 iterations.")
-                    st.write("**Future Mitigation:** 1. Offload 20% of non-critical tasks. 2. Pause new feature requests. 3. Re-baseline the timeline by 14 days.")
-                elif sentiment < 0:
-                    st.markdown(f"#### 🟡 Moderate Risk: Linguistic Ambiguity")
-                    st.write("**Current State:** Requirement text lacks technical clarity. Misinterpretation risk is high.")
-                    st.write("**Future Mitigation:** 1. Conduct a Requirements Walkthrough. 2. Define strict 'Definition of Done' (DoD) for current tasks.")
-                else:
-                    st.markdown(f"#### 🟢 Optimal State: System Balanced")
-                    st.write("**Current State:** Resources and communication are perfectly aligned.")
-                    st.write("**Future Mitigation:** Maintain current velocity. System is cleared for feature expansion.")
-                st.markdown("</div>", unsafe_allow_html=True)
+            if avg_risk > 0.6:
+                st.write(f"**Current Status:** Critical resource saturation identified at {int(avg_risk*100)}%.")
+                st.write("**Mandatory Protocol:** Immediate reallocation of engineering hours is advised to mitigate potential burnout and iteration failure.")
+            elif sentiment < 0:
+                st.write("**Current Status:** Communication ambiguity identified in documentation.")
+                st.write("**Mandatory Protocol:** Stakeholder synchronization required. Re-validate sprint objectives to ensure linguistic alignment with technical goals.")
+            else:
+                st.write("**Current Status:** All hybrid vectors within operational tolerance.")
+                st.write("**Mandatory Protocol:** No intervention required. System integrity remains optimal.")
+            st.markdown("</div>", unsafe_allow_html=True)
 
             st.line_chart(df.set_index('sprint')[['overload_score', 'ambiguity_score']])
 
     except Exception as e:
-        st.error(f"Engine Exception: {str(e)}")
+        st.error(f"Engine Failure: {str(e)}")
 else:
-    st.markdown("""<div style='text-align:center; padding-top:100px;'><div class="status-ring"></div><h2 style='color:white; font-weight:200; letter-spacing:4px;'>SYSTEM STANDBY</h2></div>""", unsafe_allow_html=True)
+    st.markdown("<div style='text-align:center; padding-top:100px;'><div class='status-ring'></div><p style='color:#333; letter-spacing:5px;'>SYSTEM STANDBY</p></div>", unsafe_allow_html=True)
 
 st.markdown(f"<div class='footer'>SENTIANRISK ARCHITECTURE &copy; 2026 BY SHAMA SALEEM</div>", unsafe_allow_html=True)
