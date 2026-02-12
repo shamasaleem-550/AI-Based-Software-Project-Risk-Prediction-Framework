@@ -27,7 +27,7 @@ try:
 except ImportError:
     st.error("System Error: Core architectural modules not found.")
 
-# --- 2. CLASSIC BUSINESS UI THEME WITH HOVER EFFECTS ---
+# --- 2. CLASSIC BUSINESS UI THEME + PRO BUTTON ---
 st.set_page_config(page_title="SentianRisk | Governance", layout="wide")
 st.markdown("""
     <style>
@@ -35,7 +35,7 @@ st.markdown("""
     
     .stApp { background-color: #0c0e12; font-family: 'Inter', sans-serif; color: #e1e1e1; }
     
-    /* Subtle Neural Pulse */
+    /* Neural Pulse */
     .status-ring { width: 60px; height: 60px; border-radius: 50%; border: 1px solid #00d9ff; margin: 0 auto 30px; animation: pulse 3s infinite; }
     @keyframes pulse { 0% { opacity: 0.3; } 50% { opacity: 1; } 100% { opacity: 0.3; } }
 
@@ -68,13 +68,25 @@ st.markdown("""
         box-shadow: 0 5px 15px rgba(0, 217, 255, 0.05);
     }
     
-    /* Clean Sidebar & Buttons */
+    /* THE GREAT INITIAL AUDIT BUTTON */
     div.stButton > button {
-        background-color: transparent; color: #00d9ff; border: 1px solid #00d9ff;
-        padding: 10px 20px; border-radius: 2px; font-weight: 600; text-transform: uppercase;
-        letter-spacing: 2px; transition: 0.4s; width: 100%;
+        background: linear-gradient(90deg, #00d9ff, #005fcc);
+        color: white;
+        border: none;
+        padding: 15px 30px;
+        border-radius: 4px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 2px;
+        transition: all 0.3s ease;
+        width: 100%;
+        margin-top: 20px;
     }
-    div.stButton > button:hover { background-color: #00d9ff; color: #0c0e12; }
+    div.stButton > button:hover {
+        transform: scale(1.02);
+        box-shadow: 0 8px 20px rgba(0, 217, 255, 0.3);
+        color: white;
+    }
     
     .footer { text-align: center; color: #444; font-size: 0.7rem; letter-spacing: 2px; padding: 40px 0; border-top: 1px solid #1c2128; margin-top: 60px; }
     </style>
@@ -102,7 +114,7 @@ if execute and req_file and spr_file:
         raw_df = pd.read_csv(spr_file)
         r_text = req_file.getvalue().decode("utf-8")
         
-        # VALIDATION AUDIT (Professional Alert)
+        # VALIDATION AUDIT
         csv_cols = "".join(raw_df.columns).lower()
         project_vectors = ['sprint', 'task', 'hour', 'capacity', 'effort', 'deadline']
         
@@ -111,8 +123,7 @@ if execute and req_file and spr_file:
                 <div style='border: 1px solid #ff4b4b; padding: 20px; border-radius: 4px; background-color: rgba(255, 75, 75, 0.05);'>
                     <h5 style='color: #ff4b4b; margin:0; letter-spacing:1px;'>STRUCTURAL MISMATCH DETECTED</h5>
                     <p style='color: #888; font-size: 0.85rem; margin-top:10px;'>
-                        Audit Incomplete: The ingested metadata does not contain Project Governance vectors. 
-                        Please align documentation with standard Sprint and Allocation schemas.
+                        Audit Incomplete: Metadata mismatch. Please provide valid Development Metadata (Sprint/Capacity/Allocation).
                     </p>
                 </div>
             """, unsafe_allow_html=True)
@@ -128,25 +139,25 @@ if execute and req_file and spr_file:
                 avg_risk = df['overload_score'].mean()
                 sentiment = TextBlob(r_text).sentiment.polarity
 
-            # KPI DASHBOARD (The Floating Boxes)
+            # KPI DASHBOARD
             k1, k2, k3, k4 = st.columns(4)
             with k1: st.markdown(f"<div class='kpi-box'><p style='color:#666; font-size:0.7rem; letter-spacing:1px;'>SENTIMENT BIAS</p><h3 style='color:#00d9ff; margin:0;'>{('STABLE' if sentiment > 0 else 'VOLATILE')}</h3></div>", unsafe_allow_html=True)
             with k2: st.markdown(f"<div class='kpi-box'><p style='color:#666; font-size:0.7rem; letter-spacing:1px;'>RISK COEFFICIENT</p><h3 style='color:#fff; margin:0;'>{avg_risk:.2f}</h3></div>", unsafe_allow_html=True)
             with k3: st.markdown(f"<div class='kpi-box'><p style='color:#666; font-size:0.7rem; letter-spacing:1px;'>ITERATIONS</p><h3 style='color:#fff; margin:0;'>{len(df)}</h3></div>", unsafe_allow_html=True)
             with k4: st.markdown(f"<div class='kpi-box'><p style='color:#666; font-size:0.7rem; letter-spacing:1px;'>MODEL FIDELITY</p><h3 style='color:#fff; margin:0;'>94%</h3></div>", unsafe_allow_html=True)
 
-            # --- STRATEGIC BRIEF ---
+            # --- STRATEGIC BRIEFING ---
             st.markdown("<div class='executive-summary'>", unsafe_allow_html=True)
             st.markdown("<h5 style='color:#ffffff; margin-bottom:15px; letter-spacing:1px;'>STRATEGIC MITIGATION BRIEF</h5>", unsafe_allow_html=True)
             
             if avg_risk > 0.6:
-                st.write(f"**Current Status:** Critical resource saturation identified at {int(avg_risk*100)}%.")
-                st.write("**Mandatory Protocol:** Immediate reallocation of engineering hours is advised to mitigate potential burnout and iteration failure.")
+                st.write(f"**Current Status:** Resource saturation identified at {int(avg_risk*100)}%.")
+                st.write("**Mandatory Protocol:** Re-baseline timeline immediately. Reduce sprint velocity to maintain model stability.")
             elif sentiment < 0:
-                st.write("**Current Status:** Communication ambiguity identified in documentation.")
-                st.write("**Mandatory Protocol:** Stakeholder synchronization required. Re-validate sprint objectives to ensure linguistic alignment with technical goals.")
+                st.write("**Current Status:** Communication volatility identified.")
+                st.write("**Mandatory Protocol:** Re-synchronize stakeholders. Define technical deliverables to resolve document ambiguity.")
             else:
-                st.write("**Current Status:** All hybrid vectors within operational tolerance.")
+                st.write("**Current Status:** System parameters within nominal range.")
                 st.write("**Mandatory Protocol:** No intervention required. System integrity remains optimal.")
             st.markdown("</div>", unsafe_allow_html=True)
 
