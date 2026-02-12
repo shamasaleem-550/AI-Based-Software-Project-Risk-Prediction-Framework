@@ -16,7 +16,6 @@ def setup_engine():
         pass
 setup_engine()
 
-# Path configuration
 current_dir = os.path.dirname(os.path.abspath(__file__))
 root_path = os.path.abspath(os.path.join(current_dir, '..'))
 if root_path not in sys.path:
@@ -26,9 +25,9 @@ try:
     from src.combined_data import create_combined_dataset
     from src.hybrid_risk_model import train_hybrid_model
 except ImportError:
-    st.error("System Error: Architectural modules (src/) not found.")
+    st.error("System Error: Core architectural modules (src/) not found.")
 
-# --- 2. ELITE BUSINESS UI DESIGN ---
+# --- 2. ELITE BUSINESS UI THEME ---
 st.set_page_config(page_title="SentianRisk | Governance", layout="wide")
 st.markdown("""
     <style>
@@ -36,25 +35,25 @@ st.markdown("""
     
     .stApp { background-color: #0c0e12; font-family: 'Inter', sans-serif; color: #e1e1e1; }
     
-    /* Breathing Neural Pulse (Standby State) */
+    /* Breathing Neural Pulse */
     .status-ring { width: 60px; height: 60px; border-radius: 50%; border: 1px solid #00d9ff; margin: 0 auto 30px; animation: pulse 3s infinite; }
     @keyframes pulse { 0%, 100% { opacity: 0.2; transform: scale(0.95); } 50% { opacity: 1; transform: scale(1); } }
 
-    /* Interactive KPI Boxes (Floating Effect) */
+    /* Interactive KPI Boxes */
     .kpi-box { 
         background-color: #161a21; border: 1px solid #2d343f; border-radius: 4px; 
         padding: 24px; text-align: center; transition: all 0.3s ease; 
     }
     .kpi-box:hover { transform: translateY(-5px); border-color: #00d9ff; box-shadow: 0 10px 20px rgba(0, 0, 0, 0.4); }
 
-    /* High-Impact Recovery Brief (The Solution Rectangle) */
+    /* High-Impact Recovery Brief */
     .recovery-brief { 
         border-left: 4px solid #00d9ff; background-color: #1a1e26; 
         padding: 25px; margin: 25px 0; border-radius: 0 4px 4px 0;
         box-shadow: 0 4px 15px rgba(0,0,0,0.3);
     }
     
-    /* The High-Energy Audit Button (Gradient Style) */
+    /* The High-Energy Audit Button */
     div.stButton > button {
         background: linear-gradient(90deg, #00d9ff, #005fcc);
         color: white; border: none; padding: 15px 30px; border-radius: 4px;
@@ -67,7 +66,7 @@ st.markdown("""
     </style>
     """, unsafe_allow_html=True)
 
-# --- 3. CORPORATE IDENTITY ---
+# --- 3. CORPORATE BRANDING ---
 st.markdown("""
     <div style="display: flex; justify-content: space-between; align-items: center; padding-bottom: 20px; border-bottom: 1px solid #1c2128; margin-bottom: 40px;">
         <div><h2 style='margin:0; font-weight:700; color:#ffffff; letter-spacing:-1px;'>SENTIAN<span style='color:#00d9ff;'>RISK</span></h2><p style='color:#666; margin:0; font-size:0.75rem; text-transform:uppercase; letter-spacing:3px;'>Strategic Governance Platform</p></div>
@@ -77,7 +76,7 @@ st.markdown("""
 
 # --- 4. CONTROL PANEL ---
 with st.sidebar:
-    st.markdown("<p style='font-size:0.7rem; color:#666; text-transform:uppercase; letter-spacing:1px;'>Data Ingestion</p>", unsafe_allow_html=True)
+    st.markdown("<p style='font-size:0.7rem; color:#666; text-transform:uppercase;'>Data Ingestion</p>", unsafe_allow_html=True)
     req_file = st.file_uploader("Project Specifications (.txt)", type=["txt"])
     spr_file = st.file_uploader("Operational Schema (.csv)", type=["csv"])
     st.markdown("---")
@@ -89,7 +88,7 @@ if execute and req_file and spr_file:
         raw_df = pd.read_csv(spr_file)
         r_text = req_file.getvalue().decode("utf-8")
         
-        # STRUCTURAL VALIDATION (Schema Gatekeeper)
+        # STRUCTURAL VALIDATION
         csv_cols = "".join(raw_df.columns).lower()
         project_vectors = ['sprint', 'task', 'hour', 'capacity', 'effort', 'deadline']
         
@@ -97,10 +96,7 @@ if execute and req_file and spr_file:
             st.markdown("""
                 <div style='border: 1px solid #ff4b4b; padding: 20px; border-radius: 4px; background-color: rgba(255, 75, 75, 0.05);'>
                     <h5 style='color: #ff4b4b; margin:0; letter-spacing:1px;'>STRUCTURAL MISMATCH DETECTED</h5>
-                    <p style='color: #888; font-size: 0.85rem; margin-top:10px;'>
-                        Data integrity audit failed. The uploaded metadata does not align with Project Governance vectors. 
-                        Please synchronize documentation with standard Sprint and Allocation schemas.
-                    </p>
+                    <p style='color: #888; font-size: 0.85rem; margin-top:10px;'>Data integrity audit failed. Invalid Governance vectors.</p>
                 </div>
             """, unsafe_allow_html=True)
         else:
@@ -112,7 +108,8 @@ if execute and req_file and spr_file:
                 create_combined_dataset()
                 train_hybrid_model()
                 df = pd.read_csv(os.path.join(root_path, "results", "combined_risk_data.csv"))
-                avg_risk = df['overload_score'].mean()
+                df = df.fillna(0)
+                avg_risk = df['overload_score'].mean() if 'overload_score' in df.columns else 0
                 sentiment = TextBlob(r_text).sentiment.polarity
 
             # KPI DASHBOARD
@@ -126,24 +123,24 @@ if execute and req_file and spr_file:
             st.markdown("<div class='recovery-brief'>", unsafe_allow_html=True)
             st.markdown("<h5 style='color:#ffffff; margin-bottom:15px; letter-spacing:2px; font-weight:700;'>AI-DRIVEN STRATEGIC RECOVERY PLAN</h5>", unsafe_allow_html=True)
             
-            # Scenario Logic: Ensures the box is NEVER empty
-            if avg_risk > 0.6:
-                st.markdown(f"<p style='color:#ff4b4b; font-weight:700; margin-bottom:5px;'>DETECTED: CRITICAL RESOURCE SATURATION</p>", unsafe_allow_html=True)
-                st.write(f"**Problem:** Resource saturation is exceeding {int(avg_risk*100)}%, predicting a burnout event.")
-                st.write("**Immediate Solution:** Implement 'Scope Freeze'. Remove 20% of low-priority backlog.")
-                st.write("**Long-term Solution:** Re-baseline the delivery timeline by 14 business days.")
+            # Use Forced Markdown with White Text to ensure visibility
+            if avg_risk > 0.5:
+                st.markdown("<p style='color:#ff4b4b; font-weight:700; font-size:1.1rem;'>ALERT: CRITICAL RESOURCE SATURATION</p>", unsafe_allow_html=True)
+                st.markdown(f"<p style='color:white;'><b>Problem:</b> Resource saturation is at {int(avg_risk*100)}%, predicting a burnout event.</p>", unsafe_allow_html=True)
+                st.markdown("<p style='color:white;'><b>Immediate Solution:</b> Implement 'Scope Freeze'. Remove low-priority backlogs.</p>", unsafe_allow_html=True)
+                st.markdown("<p style='color:white;'><b>Long-term Solution:</b> Re-baseline delivery timeline by 14 business days.</p>", unsafe_allow_html=True)
             
             elif sentiment < 0:
-                st.markdown(f"<p style='color:#ffaa00; font-weight:700; margin-bottom:5px;'>DETECTED: LINGUISTIC INSTABILITY</p>", unsafe_allow_html=True)
-                st.write("**Problem:** High ambiguity detected in requirements, increasing misinterpretation risk.")
-                st.write("**Immediate Solution:** Mandatory Stakeholder 'Clarification Sync' to define acceptance criteria.")
-                st.write("**Long-term Solution:** Integrate peer-review governance for all documentation.")
+                st.markdown("<p style='color:#ffaa00; font-weight:700; font-size:1.1rem;'>ALERT: LINGUISTIC INSTABILITY</p>", unsafe_allow_html=True)
+                st.markdown("<p style='color:white;'><b>Problem:</b> High ambiguity detected in requirements documentation.</p>", unsafe_allow_html=True)
+                st.markdown("<p style='color:white;'><b>Immediate Solution:</b> Mandatory Stakeholder 'Clarification Sync'.</p>", unsafe_allow_html=True)
+                st.markdown("<p style='color:white;'><b>Long-term Solution:</b> Establish peer-review governance for all documentation.</p>", unsafe_allow_html=True)
             
             else:
-                st.markdown(f"<p style='color:#00ff9d; font-weight:700; margin-bottom:5px;'>STATUS: OPTIMAL OPERATIONAL ALIGNMENT</p>", unsafe_allow_html=True)
-                st.write("**Problem:** No critical structural or linguistic risks identified.")
-                st.write("**Immediate Solution:** Maintain current velocity and document best practices.")
-                st.write("**Long-term Solution:** Proceed to next project phase with current allocation.")
+                # DEFAULT MESSAGE - This ensures the box is never empty
+                st.markdown("<p style='color:#00ff9d; font-weight:700; font-size:1.1rem;'>SYSTEM STATUS: OPTIMAL ALIGNMENT</p>", unsafe_allow_html=True)
+                st.markdown("<p style='color:white;'><b>Audit Result:</b> No significant structural or linguistic risks identified.</p>", unsafe_allow_html=True)
+                st.markdown("<p style='color:white;'><b>Action:</b> Maintain current velocity and monitor team allocation weekly.</p>", unsafe_allow_html=True)
 
             st.markdown("</div>", unsafe_allow_html=True)
 
