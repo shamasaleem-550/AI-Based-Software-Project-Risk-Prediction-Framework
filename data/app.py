@@ -16,6 +16,7 @@ def setup_engine():
         pass
 setup_engine()
 
+# Path configuration
 current_dir = os.path.dirname(os.path.abspath(__file__))
 root_path = os.path.abspath(os.path.join(current_dir, '..'))
 if root_path not in sys.path:
@@ -35,25 +36,25 @@ st.markdown("""
     
     .stApp { background-color: #0c0e12; font-family: 'Inter', sans-serif; color: #e1e1e1; }
     
-    /* Breathing Neural Pulse */
+    /* Breathing Neural Pulse (Standby State) */
     .status-ring { width: 60px; height: 60px; border-radius: 50%; border: 1px solid #00d9ff; margin: 0 auto 30px; animation: pulse 3s infinite; }
     @keyframes pulse { 0%, 100% { opacity: 0.2; transform: scale(0.95); } 50% { opacity: 1; transform: scale(1); } }
 
-    /* Interactive KPI Boxes */
+    /* Interactive KPI Boxes (Floating Effect) */
     .kpi-box { 
         background-color: #161a21; border: 1px solid #2d343f; border-radius: 4px; 
         padding: 24px; text-align: center; transition: all 0.3s ease; 
     }
     .kpi-box:hover { transform: translateY(-5px); border-color: #00d9ff; box-shadow: 0 10px 20px rgba(0, 0, 0, 0.4); }
 
-    /* High-Impact Recovery Brief */
+    /* High-Impact Recovery Brief (The Solution Rectangle) */
     .recovery-brief { 
         border-left: 4px solid #00d9ff; background-color: #1a1e26; 
         padding: 25px; margin: 25px 0; border-radius: 0 4px 4px 0;
         box-shadow: 0 4px 15px rgba(0,0,0,0.3);
     }
     
-    /* The High-Energy Audit Button */
+    /* The High-Energy Audit Button (Gradient Style) */
     div.stButton > button {
         background: linear-gradient(90deg, #00d9ff, #005fcc);
         color: white; border: none; padding: 15px 30px; border-radius: 4px;
@@ -88,7 +89,7 @@ if execute and req_file and spr_file:
         raw_df = pd.read_csv(spr_file)
         r_text = req_file.getvalue().decode("utf-8")
         
-        # STRUCTURAL VALIDATION (Professional Gatekeeper)
+        # STRUCTURAL VALIDATION (Schema Gatekeeper)
         csv_cols = "".join(raw_df.columns).lower()
         project_vectors = ['sprint', 'task', 'hour', 'capacity', 'effort', 'deadline']
         
@@ -97,8 +98,8 @@ if execute and req_file and spr_file:
                 <div style='border: 1px solid #ff4b4b; padding: 20px; border-radius: 4px; background-color: rgba(255, 75, 75, 0.05);'>
                     <h5 style='color: #ff4b4b; margin:0; letter-spacing:1px;'>STRUCTURAL MISMATCH DETECTED</h5>
                     <p style='color: #888; font-size: 0.85rem; margin-top:10px;'>
-                        Data integrity audit failed. The uploaded documentation does not align with Project Governance vectors. 
-                        Required: Sprint Allocation and Resource Capacity metrics.
+                        Data integrity audit failed. The uploaded metadata does not align with Project Governance vectors. 
+                        Please synchronize documentation with standard Sprint and Allocation schemas.
                     </p>
                 </div>
             """, unsafe_allow_html=True)
@@ -114,7 +115,7 @@ if execute and req_file and spr_file:
                 avg_risk = df['overload_score'].mean()
                 sentiment = TextBlob(r_text).sentiment.polarity
 
-            # KPI DASHBOARD (The Floating Interaction Layer)
+            # KPI DASHBOARD
             k1, k2, k3, k4 = st.columns(4)
             with k1: st.markdown(f"<div class='kpi-box'><p style='color:#666; font-size:0.7rem; letter-spacing:1px;'>SENTIMENT BIAS</p><h3 style='color:#00d9ff; margin:0;'>{('STABLE' if sentiment > 0 else 'VOLATILE')}</h3></div>", unsafe_allow_html=True)
             with k2: st.markdown(f"<div class='kpi-box'><p style='color:#666; font-size:0.7rem; letter-spacing:1px;'>RISK COEFFICIENT</p><h3 style='color:#fff; margin:0;'>{avg_risk:.2f}</h3></div>", unsafe_allow_html=True)
@@ -125,23 +126,24 @@ if execute and req_file and spr_file:
             st.markdown("<div class='recovery-brief'>", unsafe_allow_html=True)
             st.markdown("<h5 style='color:#ffffff; margin-bottom:15px; letter-spacing:2px; font-weight:700;'>AI-DRIVEN STRATEGIC RECOVERY PLAN</h5>", unsafe_allow_html=True)
             
+            # Scenario Logic: Ensures the box is NEVER empty
             if avg_risk > 0.6:
-                st.markdown(f"<p style='color:#ff4b4b; font-weight:700; margin-bottom:5px;'>DETECTED: CRITICAL OVERLOAD</p>", unsafe_allow_html=True)
-                st.write("**Problem:** Engineering resource saturation is exceeding 60%, predicting a burnout event in the next iteration.")
-                st.write("**Immediate Solution:** Implement a 'Scope Freeze'. Remove 20% of low-priority backlogs to stabilize velocity.")
-                st.write("**Long-term Solution:** Re-baseline the delivery timeline by 10 business days to ensure high-quality output.")
+                st.markdown(f"<p style='color:#ff4b4b; font-weight:700; margin-bottom:5px;'>DETECTED: CRITICAL RESOURCE SATURATION</p>", unsafe_allow_html=True)
+                st.write(f"**Problem:** Resource saturation is exceeding {int(avg_risk*100)}%, predicting a burnout event.")
+                st.write("**Immediate Solution:** Implement 'Scope Freeze'. Remove 20% of low-priority backlog.")
+                st.write("**Long-term Solution:** Re-baseline the delivery timeline by 14 business days.")
             
             elif sentiment < 0:
                 st.markdown(f"<p style='color:#ffaa00; font-weight:700; margin-bottom:5px;'>DETECTED: LINGUISTIC INSTABILITY</p>", unsafe_allow_html=True)
-                st.write("**Problem:** High ambiguity detected in requirements documentation, increasing the risk of misinterpretation.")
-                st.write("**Immediate Solution:** Conduct a mandatory stakeholder 'Clarification Sync' to define explicit acceptance criteria.")
-                st.write("**Long-term Solution:** Integrate a peer-review governance layer for all future requirement drafting.")
+                st.write("**Problem:** High ambiguity detected in requirements, increasing misinterpretation risk.")
+                st.write("**Immediate Solution:** Mandatory Stakeholder 'Clarification Sync' to define acceptance criteria.")
+                st.write("**Long-term Solution:** Integrate peer-review governance for all documentation.")
             
             else:
-                st.markdown(f"<p style='color:#00ff9d; font-weight:700; margin-bottom:5px;'>STATUS: OPTIMAL ALIGNMENT</p>", unsafe_allow_html=True)
-                st.write("**Problem:** No significant structural or linguistic risks identified.")
-                st.write("**Immediate Solution:** Maintain current velocity and document best practices from this iteration.")
-                st.write("**Long-term Solution:** Proceed to the next development phase with current resource allocation.")
+                st.markdown(f"<p style='color:#00ff9d; font-weight:700; margin-bottom:5px;'>STATUS: OPTIMAL OPERATIONAL ALIGNMENT</p>", unsafe_allow_html=True)
+                st.write("**Problem:** No critical structural or linguistic risks identified.")
+                st.write("**Immediate Solution:** Maintain current velocity and document best practices.")
+                st.write("**Long-term Solution:** Proceed to next project phase with current allocation.")
 
             st.markdown("</div>", unsafe_allow_html=True)
 
