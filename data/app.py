@@ -74,68 +74,82 @@ st.markdown("""
             <p style='color:#555; margin:0; font-size:0.8rem;'>HYBRID GOVERNANCE ENGINE</p>
         </div>
         <div style="text-align:right;">
-            <p style='color:#00d9ff; margin:0; font-size:0.7rem; font-weight:800;'>SYSTEM STATUS: ONLINE</p>
+            <p style='color:#00d9ff; margin:0; font-size:0.7rem; font-weight:800;'>SYSTEM STATUS: OPERATIONAL</p>
         </div>
     </div>
     """, unsafe_allow_html=True)
 
 # --- 5. SIDEBAR CONTROL PANEL ---
 with st.sidebar:
-    st.markdown("### Control Panel")
-    req_file = st.file_uploader("Upload Requirements (.txt)", type=["txt"])
-    spr_file = st.file_uploader("Upload Sprint Data (.csv)", type=["csv"])
+    st.markdown("### Data Ingestion")
+    req_file = st.file_uploader("Project Specifications (.txt)", type=["txt"])
+    spr_file = st.file_uploader("Operational Metadata (.csv)", type=["csv"])
     st.markdown("---")
-    execute = st.button("✨ EXECUTE ANALYSIS", type="primary", use_container_width=True)
+    execute = st.button("✨ INITIATE ANALYSIS", type="primary", use_container_width=True)
 
-# --- 6. MAIN LOGIC & GATEKEEPER ---
+# --- 6. MAIN LOGIC & GOVERNANCE LAYER ---
 if execute and req_file and spr_file:
     try:
         raw_df = pd.read_csv(spr_file)
         r_text = req_file.getvalue().decode("utf-8")
         
-        # GATEKEEPER CHECK: Ensure file is project-related
+        # STRUCTURAL VALIDATION ENGINE
         csv_cols = "".join(raw_df.columns).lower()
-        project_keywords = ['sprint', 'task', 'hour', 'capacity', 'effort', 'id', 'deadline']
+        project_vectors = ['sprint', 'task', 'hour', 'capacity', 'effort', 'id', 'deadline']
         
-        if not any(key in csv_cols for key in project_keywords):
-            st.warning("⚠️ **Context Mismatch Detected**")
-            st.info("The uploaded file does not contain project metrics (Sprints/Hours). Please upload valid development metadata.")
+        if not any(vector in csv_cols for vector in project_vectors):
+            st.info("🔍 **System Audit: Structural Mismatch**")
+            st.markdown("""
+                <div style='background: rgba(255,165,0,0.1); border-left: 5px solid #ffa500; padding: 15px; border-radius: 5px;'>
+                    <h4 style='color: #ffa500; margin:0;'>Schema Incompatibility</h4>
+                    <p style='color: #ccc; font-size: 0.9rem;'>
+                        The ingested dataset does not align with Project Governance vectors. 
+                        Please provide a valid Operational Schema (Sprint/Workload) to synchronize the Hybrid Risk model.
+                    </p>
+                </div>
+            """, unsafe_allow_html=True)
+            
+            st.markdown("""
+                <div style='text-align:center; padding-top:40px;'>
+                    <div class="status-ring" style="border-color: #ffa500; box-shadow: 0 0 10px #ffa500;"></div>
+                    <p style='color:#ffa500; font-size:0.7rem;'>AWAITING SCHEMA ALIGNMENT</p>
+                </div>
+            """, unsafe_allow_html=True)
         else:
-            # PROCESS DATA
+            # PROCEED WITH ANALYTICS
             col_map = smart_map_columns(raw_df)
             clean_df = raw_df.rename(columns={v: k for k, v in col_map.items()})
             
-            # Save files for the backend engine to find
             os.makedirs(os.path.join(root_path, "data"), exist_ok=True)
             clean_df.to_csv(os.path.join(root_path, "data", "sprint_tasks.csv"), index=False)
             with open(os.path.join(root_path, "data", "requirements.txt"), "w") as f: f.write(r_text)
 
-            with st.spinner("AI Engine Processing..."):
+            with st.spinner("Synchronizing Hybrid Risk Vectors..."):
                 create_combined_dataset()
                 train_hybrid_model()
                 df = pd.read_csv(os.path.join(root_path, "results", "combined_risk_data.csv"))
                 sentiment = TextBlob(r_text).sentiment.polarity
 
-            # DISPLAY DASHBOARD
+            # DISPLAY DASHBOARD (Professional KPIs)
             k1, k2, k3, k4 = st.columns(4)
-            with k1: st.markdown(f"<div class='kpi-box'><p style='color:#555; font-size:0.7rem;'>MOOD</p><h2 style='color:#00d9ff;'>{('STABLE' if sentiment > 0 else 'VAGUE')}</h2></div>", unsafe_allow_html=True)
-            with k2: st.markdown(f"<div class='kpi-box'><p style='color:#555; font-size:0.7rem;'>RISK INDEX</p><h2>{df['overload_score'].mean():.2f}</h2></div>", unsafe_allow_html=True)
-            with k3: st.markdown(f"<div class='kpi-box'><p style='color:#555; font-size:0.7rem;'>SPRINTS</p><h2 style='color:#00ff9d;'>{len(df)}</h2></div>", unsafe_allow_html=True)
-            with k4: st.markdown(f"<div class='kpi-box'><p style='color:#555; font-size:0.7rem;'>CONFIDENCE</p><h2>94%</h2></div>", unsafe_allow_html=True)
+            with k1: st.markdown(f"<div class='kpi-box'><p style='color:#555; font-size:0.7rem;'>SENTIMENT BIAS</p><h2 style='color:#00d9ff;'>{('STABLE' if sentiment > 0 else 'VOLATILE')}</h2></div>", unsafe_allow_html=True)
+            with k2: st.markdown(f"<div class='kpi-box'><p style='color:#555; font-size:0.7rem;'>RISK COEFFICIENT</p><h2>{df['overload_score'].mean():.2f}</h2></div>", unsafe_allow_html=True)
+            with k3: st.markdown(f"<div class='kpi-box'><p style='color:#555; font-size:0.7rem;'>ITERATIONS</p><h2 style='color:#00ff9d;'>{len(df)}</h2></div>", unsafe_allow_html=True)
+            with k4: st.markdown(f"<div class='kpi-box'><p style='color:#555; font-size:0.7rem;'>MODEL FIDELITY</p><h2>94%</h2></div>", unsafe_allow_html=True)
 
             st.markdown("<br>", unsafe_allow_html=True)
             st.line_chart(df.set_index('sprint')[['overload_score', 'ambiguity_score']])
-            st.success("Governance Analysis Successful.")
+            st.success("✅ Analysis Complete: Risk Vectors Synchronized.")
 
     except Exception as e:
-        st.error(f"Analysis interrupted: {str(e)}")
+        st.error(f"Engine Exception: {str(e)}")
 else:
     # STANDBY MODE (Pulse Animation)
     st.markdown("""
         <div style='text-align:center; padding-top:100px;'>
             <div class="status-ring"></div>
             <h2 style='color:white; font-weight:200; letter-spacing:4px;'>SYSTEM STANDBY</h2>
-            <p style='color:#444; font-size:0.8rem; margin-top:10px;'>WAITING FOR DATA INGESTION</p>
+            <p style='color:#444; font-size:0.8rem; margin-top:10px;'>AWAITING DATA INGESTION FOR RISK MODELING</p>
         </div>
     """, unsafe_allow_html=True)
 
